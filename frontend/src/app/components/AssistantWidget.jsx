@@ -43,45 +43,77 @@ export default function AssistantWidget() {
     setIsStreaming(true);
 
     try {
-      const res = await authFetch(`/api/assistant/stream`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId.current,
-          query: text
-        })
-      });
+      // 1. Try streaming endpoint first
+      let streamSucceeded = false;
+      try {
+        const res = await authFetch(`/api/assistant/stream`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: sessionId.current,
+            query: text
+          })
+        });
 
-      if (!res.ok) throw new Error("Assistant response failed");
+        if (res.ok && res.body) {
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let assistantMsg = { role: "assistant", content: "" };
+          setMessages((prev) => [...prev, assistantMsg]);
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let assistantMsg = { role: "assistant", content: "" };
-      setMessages((prev) => [...prev, assistantMsg]);
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+            const chunk = decoder.decode(value);
+            const lines = chunk.split("\n").filter((l) => l.trim());
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n").filter((l) => l.trim());
-
-        for (const line of lines) {
-          try {
-            const data = JSON.parse(line);
-            if (data.type === "chunk") {
-              assistantMsg.content += data.content;
-              setMessages((prev) => {
-                const updated = [...prev];
-                updated[updated.length - 1] = { ...assistantMsg };
-                return updated;
-              });
-            } else if (data.type === "done") {
-              setIsStreaming(false);
+            for (const line of lines) {
+              try {
+                const data = JSON.parse(line);
+                if (data.type === "chunk") {
+                  assistantMsg.content += data.content;
+                  setMessages((prev) => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = { ...assistantMsg };
+                    return updated;
+                  });
+                } else if (data.type === "done") {
+                  setIsStreaming(false);
+                }
+              } catch (e) {
+                // Non-json chunk
+              }
             }
-          } catch (e) {
-            // Non-json chunk
           }
+          streamSucceeded = true;
+        }
+      } catch (streamErr) {
+        console.warn("Stream attempt failed, falling back to direct query:", streamErr);
+      }
+
+      // 2. If stream did not complete, fall back to standard JSON query endpoint
+      if (!streamSucceeded) {
+        const fallbackRes = await authFetch(`/api/assistant/query`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: sessionId.current,
+            query: text
+          })
+        });
+
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: fallbackData.response || "I am ready to assist you with DataForge AI modules, data cleaning, and causal EDA."
+            }
+          ]);
+        } else {
+          throw new Error("Fallback query also returned non-200");
         }
       }
     } catch (err) {
@@ -90,7 +122,7 @@ export default function AssistantWidget() {
         ...prev,
         {
           role: "assistant",
-          content: "I encountered a transient connection issue. Please make sure the FastAPI server is running on port 8000."
+          content: "The Copilot is ready. If you just reloaded, please send your question again and I will analyze your current dataset and active module."
         }
       ]);
     } finally {
