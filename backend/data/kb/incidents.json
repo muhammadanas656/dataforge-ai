@@ -2637,5 +2637,115 @@
     "resolution": null,
     "proposal": null,
     "rejected": false
+  },
+  {
+    "id": "1c8774a106",
+    "kind": "unknown",
+    "context": {},
+    "error": "agent_failed_to_propose",
+    "created_at": "2026-08-22T15:38:44.481133",
+    "resolved": false,
+    "resolution": null,
+    "proposal": null,
+    "rejected": false
+  },
+  {
+    "id": "0d652cc38a",
+    "kind": "unknown",
+    "context": {},
+    "error": "agent_failed_to_propose",
+    "created_at": "2026-08-22T15:39:00.480817",
+    "resolved": false,
+    "resolution": null,
+    "proposal": null,
+    "rejected": false
+  },
+  {
+    "id": "47c0440558",
+    "kind": "unknown",
+    "context": {},
+    "error": "agent_failed_to_propose",
+    "created_at": "2026-08-22T15:39:23.179504",
+    "resolved": false,
+    "resolution": null,
+    "proposal": null,
+    "rejected": false
+  },
+  {
+    "id": "31009bc7e4",
+    "kind": "unknown",
+    "context": {},
+    "error": "agent_failed_to_propose",
+    "created_at": "2026-08-22T15:39:23.353923",
+    "resolved": false,
+    "resolution": null,
+    "proposal": null,
+    "rejected": false
+  },
+  {
+    "id": "e791175539",
+    "kind": "unknown",
+    "context": {},
+    "error": "agent_failed_to_propose",
+    "created_at": "2026-08-22T15:39:23.740193",
+    "resolved": false,
+    "resolution": null,
+    "proposal": null,
+    "rejected": false
+  },
+  {
+    "id": "5be1203248",
+    "kind": "unknown",
+    "context": {},
+    "error": "agent_failed_to_propose",
+    "created_at": "2026-08-22T15:39:24.041045",
+    "resolved": false,
+    "resolution": null,
+    "proposal": null,
+    "rejected": false
+  },
+  {
+    "id": "8c9a88a7c3",
+    "kind": "unknown",
+    "context": {},
+    "error": "agent_failed_to_propose",
+    "created_at": "2026-08-22T15:40:59.514804",
+    "resolved": false,
+    "resolution": null,
+    "proposal": null,
+    "rejected": false
+  },
+  {
+    "id": "a12ec1947a",
+    "kind": "unknown",
+    "context": {},
+    "error": "agent_failed_to_propose",
+    "created_at": "2026-08-22T15:41:09.914793",
+    "resolved": false,
+    "resolution": null,
+    "proposal": null,
+    "rejected": false
+  },
+  {
+    "id": "2a426bd57d",
+    "kind": "unknown",
+    "context": {},
+    "error": "agent_failed_to_propose",
+    "created_at": "2026-08-22T15:41:31.139119",
+    "resolved": false,
+    "resolution": null,
+    "proposal": null,
+    "rejected": false
+  },
+  {
+    "id": "6339cc2522",
+    "kind": "unknown",
+    "context": {},
+    "error": "agent_failed_to_propose",
+    "created_at": "2026-08-22T15:41:47.212937",
+    "resolved": false,
+    "resolution": null,
+    "proposal": null,
+    "rejected": false
   }
 ]

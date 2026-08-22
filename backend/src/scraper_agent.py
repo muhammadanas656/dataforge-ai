@@ -517,4 +517,4 @@ class ScraperAgent:
 
 
 scraper = ScraperAgent()
-
+decode_cloudflare_email = ScraperAgent.decode_cloudflare_email

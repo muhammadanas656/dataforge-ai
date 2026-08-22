@@ -1177,5 +1177,34 @@
       "source": "distilled_model"
     },
     "domain": "generic"
+  },
+  {
+    "name": "user_id",
+    "kind": "numeric",
+    "desc": {
+      "name": "user_id",
+      "semantic_type": "numeric",
+      "meaning": "Column 'user_id' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "source": "distilled_model",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "val",
+    "kind": "numeric",
+    "desc": {
+      "name": "val",
+      "semantic_type": "numeric",
+      "meaning": "Column 'val' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9666666666666667,
+      "source": "distilled_model"
+    },
+    "domain": "generic"
   }
 ]
