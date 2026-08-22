@@ -1,0 +1,789 @@
+[
+  {
+    "name": "Avatar",
+    "kind": "text",
+    "desc": {
+      "semantic_type": "categorical",
+      "meaning": "Represents a color name used as an avatar or theme color",
+      "pii": false,
+      "suggested_use": "dimension",
+      "confidence": 0.95,
+      "name": "Avatar",
+      "tier": "T3_llm"
+    }
+  },
+  {
+    "name": "Avg_Session_Length",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Average length of a user session in minutes",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "Avg_Session_Length",
+      "tier": "T3_llm"
+    }
+  },
+  {
+    "name": "Time_on_App",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Duration of a user's session on the app, measured in minutes.",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "Time_on_App",
+      "tier": "T3_llm"
+    }
+  },
+  {
+    "name": "Time_on_Website",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Duration of a user’s session on the website (in minutes).",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "Time_on_Website",
+      "tier": "T3_llm"
+    }
+  },
+  {
+    "name": "Length_of_Membership",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Duration of a member's membership in the organization, expressed in years.",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9
+    }
+  },
+  {
+    "name": "Product Name",
+    "kind": "text",
+    "desc": {
+      "semantic_type": "identifier",
+      "meaning": "Name of a cricket kit bag product",
+      "pii": false,
+      "suggested_use": "identifier",
+      "confidence": 0.95,
+      "name": "Product Name",
+      "tier": "T3_llm"
+    }
+  },
+  {
+    "name": "Product",
+    "kind": "text",
+    "desc": {
+      "semantic_type": "categorical",
+      "meaning": "Name of the product sold",
+      "pii": false,
+      "suggested_use": "dimension",
+      "confidence": 0.95
+    }
+  },
+  {
+    "name": "crim",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "per capita crime rate by town",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "crim",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "zn",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Zinc concentration expressed as a percentage",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "name": "zn",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "indus",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Numeric index representing industrial activity or output level",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "name": "indus",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "chas",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "categorical",
+      "meaning": "Binary indicator of whether a property is located near the Charles River",
+      "pii": false,
+      "suggested_use": "feature",
+      "confidence": 0.95,
+      "name": "chas",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "nox",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Concentration of nitrogen oxides (NOx) in the environment, expressed as a numeric value.",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.8,
+      "name": "nox",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "rm",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Represents rm",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "name": "rm",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "age",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "The age of the individual in years.",
+      "pii": true,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "age",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "dis",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Represents dis",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "name": "dis",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "rad",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Represents rad",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "name": "rad",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "tax",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Tax amount in currency units",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "tax",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "ptratio",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Pupil‑teacher ratio in the town",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "ptratio",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "b",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Numeric values ranging from 0.32 to 396.9",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.2,
+      "name": "b",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "lstat",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Percentage of lower status population in the neighborhood",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "lstat",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "medv",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Median value of owner‑occupied homes (in thousands of dollars) for a census tract",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "calories",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Calories per serving of a food item",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "calories",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "protein",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Protein content measurement",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "protein",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "fat",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Numeric measure of fat content (e.g., grams or percentage)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.8,
+      "name": "fat",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "sodium",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Sodium content per unit (e.g., mg per serving)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "sodium",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "fiber",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Amount of dietary fiber (grams) per serving",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "fiber",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "carbo",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Numeric value representing the amount of carbohydrates (likely in grams) associated with a food item or product.",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "name": "carbo",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "sugars",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Amount of sugars (e.g., in a beverage or food item)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9,
+      "name": "sugars",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "potass",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Potassium concentration measured in the sample",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.8,
+      "name": "potass",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "vitamins",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "percentage of daily recommended vitamin intake",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9,
+      "name": "vitamins",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "shelf",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_discrete",
+      "meaning": "Represents the shelf number where an item is stored",
+      "pii": false,
+      "suggested_use": "dimension",
+      "confidence": 0.9,
+      "name": "shelf",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "weight",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Weight of an item or individual, measured in a consistent unit (e.g., kilograms or pounds).",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "weight",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "cups",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Number of cups (volume measure)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9,
+      "name": "cups",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "rating",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "A numeric rating score, likely representing user satisfaction or product quality.",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Customer_ID",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "identifier",
+      "meaning": "Unique numeric identifier for a customer",
+      "pii": true,
+      "suggested_use": "identifier",
+      "confidence": 0.95,
+      "name": "Customer_ID",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Browsing_Time_Min",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Total time spent browsing, measured in minutes",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "Browsing_Time_Min",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Cart_Additions",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_discrete",
+      "meaning": "Number of items added to a shopping cart during a session",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9,
+      "name": "Cart_Additions",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Checkout_Completed",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_discrete",
+      "meaning": "Indicates whether a checkout process was completed (1) or not (0).",
+      "pii": false,
+      "suggested_use": "target",
+      "confidence": 0.95,
+      "name": "Checkout_Completed",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Total_Spent_USD",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "currency",
+      "meaning": "Total amount spent in US dollars",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Purchase Date",
+    "kind": "text",
+    "desc": {
+      "semantic_type": "date",
+      "meaning": "The calendar date on which a purchase was made",
+      "pii": false,
+      "suggested_use": "dimension",
+      "confidence": 0.95,
+      "name": "Purchase Date",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "NPS",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_discrete",
+      "meaning": "Net Promoter Score, a customer loyalty metric ranging from 0 to 10.",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "NPS",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Customer Age",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Age of the customer in years",
+      "pii": false,
+      "suggested_use": "dimension",
+      "confidence": 0.9,
+      "name": "Customer Age",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Latitude",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Geographic latitude coordinate of a location",
+      "pii": false,
+      "suggested_use": "dimension",
+      "confidence": 0.95,
+      "name": "Latitude",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Longituide",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Longitude coordinate in degrees",
+      "pii": false,
+      "suggested_use": "dimension",
+      "confidence": 0.95
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "order_id",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "identifier",
+      "meaning": "Unique numeric identifier for an order",
+      "pii": false,
+      "suggested_use": "identifier",
+      "confidence": 0.99,
+      "name": "order_id",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "delivery_days",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_discrete",
+      "meaning": "Number of days until delivery",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "delivery_days",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "customer_rating",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_discrete",
+      "meaning": "Customer satisfaction rating on a scale from 1 to 5",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "customer_rating",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "revenue",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "currency",
+      "meaning": "Total revenue for a given period",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Paper Plane Design Framed Wall Hanging Motivational Office Decor Art Prints (8.7 X 8.7 inch) - Set of 4 Painting made up in synthetic frame with uv textured print which gives multi effects and attracts towards it. This is an special series of paintings which makes your wall very beautiful and gives a royal touch. This painting is ready to hang, you would be proud to possess this unique painting that is a niche apart. We use only the most modern and efficient printing technology on our prints, with only the and inks and precision epson, roland and hp printers. This innovative hd printing technique results in durable and spectacular looking prints of the highest that last a lifetime. We print solely with top-notch 100% inks, to achieve brilliant and true colours. Due to their high level of uv resistance, our prints retain their beautiful colours for many years. Add colour and style to your living space with this digitally printed painting. Some are for pleasure and some for eternal bliss.so bring home this elegant print that is lushed with rich colors that makes it nothing but sheer elegance to be to your friends and family.it would be treasured forever by whoever your lucky recipient is. Liven up your place with these intriguing paintings that are high definition hd graphic digital prints for home, office or any room.",
+    "kind": "text",
+    "desc": {
+      "semantic_type": "free_text",
+      "meaning": "Product description of a framed wall hanging art print set",
+      "pii": false,
+      "suggested_use": "dimension",
+      "confidence": 0.95
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "total_bill",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Total monetary amount of a single transaction or bill",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "total_bill",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "tip",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Tip amount given by a customer",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "tip",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "smoker",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_discrete",
+      "meaning": "Indicates whether the individual is a smoker (1) or not (0).",
+      "pii": false,
+      "suggested_use": "feature",
+      "confidence": 0.95,
+      "name": "smoker",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "size",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_discrete",
+      "meaning": "Represents the size category of an item, likely on a scale from 1 to 6.",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "sku",
+    "kind": "text",
+    "desc": {
+      "name": "sku",
+      "semantic_type": "identifier",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "cogs_usd",
+    "kind": "numeric",
+    "desc": {
+      "name": "cogs_usd",
+      "semantic_type": "cost_of_goods_sold",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "units_sold",
+    "kind": "numeric",
+    "desc": {
+      "name": "units_sold",
+      "semantic_type": "numeric",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "amazon_fee_usd",
+    "kind": "numeric",
+    "desc": {
+      "name": "amazon_fee_usd",
+      "semantic_type": "numeric",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "revenue_usd",
+    "kind": "numeric",
+    "desc": {
+      "name": "revenue_usd",
+      "semantic_type": "revenue",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "gross_profit_usd",
+    "kind": "numeric",
+    "desc": {
+      "name": "gross_profit_usd",
+      "semantic_type": "numeric"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "net_profit_usd",
+    "kind": "numeric",
+    "desc": {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Continuous measurement in 'net_profit_usd'",
+      "source": "rule_fallback",
+      "confidence": 0.5
+    },
+    "domain": "generic"
+  }
+]

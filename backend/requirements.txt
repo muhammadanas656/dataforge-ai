@@ -1,0 +1,16 @@
+pandas
+numpy
+scikit-learn
+scipy
+rapidfuzz
+chardet
+openpyxl
+pyarrow
+python-dotenv
+groq
+fastapi
+uvicorn
+python-multipart
+pytest
+duckdb
+boto3

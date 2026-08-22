@@ -1,0 +1,150 @@
+{
+  "dataset_id": "feab58be",
+  "steps": [
+    {
+      "id": 1,
+      "action": "remove_duplicates",
+      "description": "Remove exact duplicate rows",
+      "impact": {
+        "rows_removed": 682,
+        "pct": 8.66
+      },
+      "alternatives": [
+        "remove exact duplicates",
+        "fuzzy dedup (near-matches)",
+        "keep all (flag dupes)"
+      ],
+      "score": 0.8,
+      "tier": "STRONGLY RECOMMEND",
+      "risk": "low",
+      "llm_review": {
+        "step_id": 1,
+        "verdict": "agree",
+        "reason": "Low-risk duplicate removal improves data integrity."
+      }
+    },
+    {
+      "id": 2,
+      "action": "standardize_text",
+      "column": "Product Name",
+      "description": "Standardize text in 'Product Name'",
+      "impact": {
+        "values_changed": 5247,
+        "pct": 66.6
+      },
+      "alternatives": [
+        "strip+title-case",
+        "lower-case",
+        "keep as-is"
+      ],
+      "score": 0.25,
+      "tier": "OPTIONAL",
+      "risk": "low",
+      "llm_review": {
+        "step_id": 2,
+        "verdict": "agree",
+        "reason": "Standardizing Product Name reduces inconsistencies."
+      }
+    },
+    {
+      "id": 3,
+      "action": "remove_outliers",
+      "column": "Old Price",
+      "description": "Remove IQR outliers in 'Old Price'",
+      "impact": {
+        "rows_removed": 1004,
+        "pct": 12.74
+      },
+      "alternatives": [
+        "remove IQR outliers",
+        "flag outliers (keep)",
+        "winsorize (cap)"
+      ],
+      "score": 0.17,
+      "tier": "OPTIONAL",
+      "risk": "medium",
+      "llm_review": {
+        "step_id": 3,
+        "verdict": "modify",
+        "reason": "12.74% row removal high; recommend stricter IQR or domain-based thresholds."
+      }
+    },
+    {
+      "id": 4,
+      "action": "remove_outliers",
+      "column": "Special Price",
+      "description": "Remove IQR outliers in 'Special Price'",
+      "impact": {
+        "rows_removed": 977,
+        "pct": 12.4
+      },
+      "alternatives": [
+        "remove IQR outliers",
+        "flag outliers (keep)",
+        "winsorize (cap)"
+      ],
+      "score": 0.18,
+      "tier": "OPTIONAL",
+      "risk": "medium",
+      "llm_review": {
+        "step_id": 4,
+        "verdict": "modify",
+        "reason": "12.4% row removal high; suggest tighter outlier criteria."
+      }
+    },
+    {
+      "id": 5,
+      "action": "remove_outliers",
+      "column": "Discount %",
+      "description": "Remove IQR outliers in 'Discount %'",
+      "impact": {
+        "rows_removed": 87,
+        "pct": 1.1
+      },
+      "alternatives": [
+        "remove IQR outliers",
+        "flag outliers (keep)",
+        "winsorize (cap)"
+      ],
+      "score": 0.24,
+      "tier": "OPTIONAL",
+      "risk": "medium",
+      "llm_review": {
+        "step_id": 5,
+        "verdict": "agree",
+        "reason": "1.1% outlier removal acceptable."
+      }
+    },
+    {
+      "id": 6,
+      "action": "standardize_text",
+      "column": "Product",
+      "description": "Standardize text in 'Product'",
+      "impact": {
+        "values_changed": 5149,
+        "pct": 65.36
+      },
+      "alternatives": [
+        "strip+title-case",
+        "lower-case",
+        "keep as-is"
+      ],
+      "score": 0.25,
+      "tier": "OPTIONAL",
+      "risk": "low",
+      "llm_review": {
+        "step_id": 6,
+        "verdict": "agree",
+        "reason": "Standardizing Product field improves consistency."
+      }
+    }
+  ],
+  "leakage": [],
+  "additions": [
+    {
+      "action": "validate_outlier_thresholds",
+      "column": null,
+      "reason": "Ensure outlier removal is justified and reproducible."
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+[
+  {"product":"Bat","price":1000,"discount":10},
+  {"product":"Racket","price":2500,"discount":20},
+  {"product":"Ball","price":300,"discount":5}
+]

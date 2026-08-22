@@ -1,0 +1,1695 @@
+[
+  {
+    "id": "1150a32e15",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:14:49.160700",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      }
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T15:14:49.162535"
+  },
+  {
+    "id": "0a7513268c",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:14:49.207548",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false
+  },
+  {
+    "id": "a714776b67",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:15:32.693344",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      }
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T15:15:32.695321"
+  },
+  {
+    "id": "64b50e6572",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:15:32.709542",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false
+  },
+  {
+    "id": "c746e955f0",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:22:51.720135",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T15:22:51.722237"
+  },
+  {
+    "id": "0b66ae51f9",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:22:51.736634",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "7f362ae706",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:37:54.730424",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T15:37:54.733112"
+  },
+  {
+    "id": "723dc70fff",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:37:54.745873",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "bddbaa5bd2",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:46:51.841041",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T15:46:51.844776"
+  },
+  {
+    "id": "aebc3c7dbe",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:46:51.861925",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "44ff016ccc",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:47:01.144383",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T15:47:01.147634"
+  },
+  {
+    "id": "8a70baa196",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T15:47:01.160472",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "50bb5db59f",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T16:26:42.427519",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T16:26:42.432357"
+  },
+  {
+    "id": "61345716d7",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T16:26:42.454423",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "5c0a2a514a",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T16:36:00.460180",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T16:36:00.470384"
+  },
+  {
+    "id": "5084f079c5",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T16:36:00.520953",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "5a14bae77d",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T16:55:26.656505",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T16:55:26.658751"
+  },
+  {
+    "id": "28c10c1068",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T16:55:26.666546",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "7e3c11fc97",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T16:57:03.581794",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T16:57:03.583429"
+  },
+  {
+    "id": "586dff1c6a",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T16:57:03.592958",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "f7a6b8f7ee",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T17:25:42.995265",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T17:25:42.997329"
+  },
+  {
+    "id": "25e4b65faa",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T17:25:43.006022",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "28f973e6bd",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-21T17:31:32.993791",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-21T17:31:32.996430"
+  },
+  {
+    "id": "372a3f0391",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-21T17:31:33.008056",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "a36438bb87",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T02:36:03.496462",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T02:36:03.501795"
+  },
+  {
+    "id": "ae24de6062",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T02:36:03.536564",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "d095eb6fb5",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T02:39:57.642157",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T02:39:57.652828"
+  },
+  {
+    "id": "beacd51ea2",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T02:39:57.694958",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "78105eec73",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T02:58:25.721553",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T02:58:25.725926"
+  },
+  {
+    "id": "4f423793e8",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T02:58:25.741847",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "a1c91641a7",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T03:00:09.902722",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T03:00:09.908592"
+  },
+  {
+    "id": "8e2abdb54e",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T03:00:09.929234",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "bf43a9fc21",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T03:47:38.739748",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T03:47:38.742809"
+  },
+  {
+    "id": "e6c28d7802",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T03:47:38.755081",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "58aa1a8763",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T03:50:21.214790",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T03:50:21.217318"
+  },
+  {
+    "id": "2f900547b5",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T03:50:21.226995",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "9f022d0772",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:00:56.979576",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T04:00:56.985606"
+  },
+  {
+    "id": "980d2faa81",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:00:57.000532",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "66cfc1e6ad",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:07:42.095675",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T04:07:42.100362"
+  },
+  {
+    "id": "d9ce478e61",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:07:42.112874",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "7848aa933c",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:10:19.380951",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T04:10:19.384221"
+  },
+  {
+    "id": "2b3bc4ee41",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:10:19.396650",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "dcea0fde32",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:41:06.585100",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T04:41:06.594214"
+  },
+  {
+    "id": "9c43e0340a",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:41:06.617809",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "70115210cd",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:43:16.470048",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T04:43:16.479082"
+  },
+  {
+    "id": "5dc7d65729",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:43:16.497156",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "eaf18c1d4e",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:59:15.822060",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T04:59:15.831454"
+  },
+  {
+    "id": "a21f10b45f",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T04:59:15.864852",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "acace13f72",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T05:04:43.839214",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T05:04:43.852837"
+  },
+  {
+    "id": "5124ff29a2",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T05:04:43.877516",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "9e65924ffe",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T05:07:02.043955",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T05:07:02.051649"
+  },
+  {
+    "id": "c8a722d37a",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T05:07:02.078366",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  },
+  {
+    "id": "53619ebc1c",
+    "kind": "null_violation",
+    "context": {
+      "column": "status",
+      "dtype": "object"
+    },
+    "error": null,
+    "created_at": "2026-08-22T05:21:54.178067",
+    "resolved": true,
+    "resolution": {
+      "resolution": "auto_fixed_l3",
+      "plan": {
+        "op": "fill_mode",
+        "params": {
+          "column": "status"
+        },
+        "reason": "fill missing status",
+        "impact": {
+          "rows_dropped": 0,
+          "drop_pct": 0.0,
+          "columns_added": []
+        },
+        "high_impact": false
+      },
+      "sig": "0ff975ffa018b6b8ca623a2254bc7b7c",
+      "plan_id": "da57e528c64d"
+    },
+    "proposal": null,
+    "rejected": false,
+    "resolved_at": "2026-08-22T05:21:54.201817"
+  },
+  {
+    "id": "9b147e894e",
+    "kind": "negative_prices",
+    "context": {
+      "column": "price",
+      "dtype": "float64"
+    },
+    "error": null,
+    "created_at": "2026-08-22T05:21:54.251350",
+    "resolved": false,
+    "resolution": null,
+    "proposal": {
+      "op": "custom_eval",
+      "params": {
+        "expr": "price > 0",
+        "new": "is_valid"
+      },
+      "reason": "flag invalid",
+      "impact": {
+        "rows_dropped": 0,
+        "drop_pct": 0.0,
+        "columns_added": [
+          "is_valid"
+        ]
+      },
+      "high_impact": false
+    },
+    "rejected": false,
+    "sig": "f59f82c04a1a22a3d3042acc720f6e56",
+    "plan_id": "0de7afdb0c8e"
+  }
+]

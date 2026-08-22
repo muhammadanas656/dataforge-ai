@@ -1,0 +1,109 @@
+{
+  "shape": [
+    7878,
+    5
+  ],
+  "total_rows": 7878,
+  "total_columns": 5,
+  "duplicate_rows": 682,
+  "duplicate_pct": 8.66,
+  "near_duplicate_estimate": 262,
+  "pii": {
+    "Product Name": {
+      "phone": 6
+    }
+  },
+  "columns": [
+    {
+      "name": "Product Name",
+      "dtype": "str",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "unique": 1475,
+      "unique_pct": 18.72,
+      "kind": "text",
+      "sample_values": [
+        "SG Opti Pack Cricket Kit Bag Black and Lime",
+        "SG Jaffa Cricket Kit Bag",
+        "SG 22 Yard X2 Trolley Cricket Kit Bag",
+        "SM Fanatic Cricket Kit Bag",
+        "SM Collide Cricket Kit Bag"
+      ]
+    },
+    {
+      "name": "Old Price",
+      "dtype": "float64",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "unique": 751,
+      "unique_pct": 9.53,
+      "kind": "numeric",
+      "stats": {
+        "min": 120.0,
+        "max": 179999.0,
+        "mean": 7546.15,
+        "median": 3600.0
+      },
+      "outliers": 1004,
+      "outlier_pct": 12.74
+    },
+    {
+      "name": "Special Price",
+      "dtype": "float64",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "unique": 913,
+      "unique_pct": 11.59,
+      "kind": "numeric",
+      "stats": {
+        "min": 110.0,
+        "max": 125999.0,
+        "mean": 5646.15,
+        "median": 2625.0
+      },
+      "outliers": 977,
+      "outlier_pct": 12.4
+    },
+    {
+      "name": "Discount %",
+      "dtype": "float64",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "unique": 1133,
+      "unique_pct": 14.38,
+      "kind": "numeric",
+      "stats": {
+        "min": 0.168481078278901,
+        "max": 75.02499999999999,
+        "mean": 25.82,
+        "median": 21.67
+      },
+      "outliers": 87,
+      "outlier_pct": 1.1
+    },
+    {
+      "name": "Product",
+      "dtype": "str",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "unique": 69,
+      "unique_pct": 0.88,
+      "kind": "text",
+      "sample_values": [
+        "SG Cricket Bat Toe Guard Pack",
+        "SG Sanju 14 English Willow Cricket Bat",
+        "Li Ning Almighty V Badminton Shoes",
+        "SF True Test Cricket Ball 12 Ball Set",
+        "BDM Sachin Special Batting Gloves White Blue and Orange"
+      ]
+    }
+  ],
+  "dataset_id": "feab58be",
+  "source": "csv",
+  "encoding": "ascii",
+  "schema_fingerprint": "e7e69478a438f31a365f0414d1949659",
+  "snapshot": {
+    "parquet": "data/canonical/feab58be.parquet",
+    "csv": "data/canonical/feab58be.csv"
+  }
+}

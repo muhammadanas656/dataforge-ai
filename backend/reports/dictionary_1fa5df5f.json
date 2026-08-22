@@ -1,0 +1,51 @@
+{
+  "dataset_id": "1fa5df5f",
+  "domain": "e-commerce",
+  "dictionary": [
+    {
+      "semantic_type": "categorical",
+      "meaning": "Name of the product sold",
+      "pii": false,
+      "suggested_use": "dimension",
+      "confidence": 0.95,
+      "name": "product"
+    },
+    {
+      "semantic_type": "currency",
+      "meaning": "The price of the item or service",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "price"
+    },
+    {
+      "semantic_type": "numeric_continuous",
+      "meaning": "Percentage discount applied to a transaction or product",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "discount"
+    }
+  ],
+  "playbook": {
+    "kpis": [
+      "AOV",
+      "discount_rate",
+      "category_concentration"
+    ],
+    "checks": [
+      "price>0",
+      "discount in [0,100]",
+      "duplicate orders"
+    ],
+    "charts": [
+      "category bar",
+      "discount distribution",
+      "price histogram"
+    ]
+  },
+  "cache_stats": {
+    "hits": 2,
+    "misses": 1
+  }
+}

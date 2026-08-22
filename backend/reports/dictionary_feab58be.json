@@ -1,0 +1,72 @@
+{
+  "dataset_id": "feab58be",
+  "domain": "e-commerce",
+  "dictionary": [
+    {
+      "semantic_type": "identifier",
+      "meaning": "Name of a cricket kit bag product",
+      "pii": false,
+      "suggested_use": "identifier",
+      "confidence": 0.95,
+      "name": "Product Name",
+      "tier": "T2_rag"
+    },
+    {
+      "semantic_type": "currency",
+      "meaning": "rule-inferred: Old Price",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "Old Price",
+      "tier": "T1_rules"
+    },
+    {
+      "semantic_type": "currency",
+      "meaning": "rule-inferred: Special Price",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "Special Price",
+      "tier": "T1_rules"
+    },
+    {
+      "semantic_type": "numeric_continuous",
+      "meaning": "rule-inferred: Discount %",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.95,
+      "name": "Discount %",
+      "tier": "T1_rules"
+    },
+    {
+      "semantic_type": "categorical",
+      "meaning": "Name of the product sold",
+      "pii": false,
+      "suggested_use": "dimension",
+      "confidence": 0.95,
+      "name": "Product",
+      "tier": "T2_rag"
+    }
+  ],
+  "playbook": {
+    "kpis": [
+      "AOV",
+      "discount_rate",
+      "category_concentration"
+    ],
+    "checks": [
+      "price>0",
+      "discount in [0,100]",
+      "duplicate orders"
+    ],
+    "charts": [
+      "category bar",
+      "discount distribution",
+      "price histogram"
+    ]
+  },
+  "frugal_tier_stats": {
+    "T1_rules": 5,
+    "T2_rag": 2
+  }
+}

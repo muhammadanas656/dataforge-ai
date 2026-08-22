@@ -1,0 +1,70 @@
+{
+  "shape": [
+    3,
+    3
+  ],
+  "total_rows": 3,
+  "total_columns": 3,
+  "duplicate_rows": 0,
+  "duplicate_pct": 0.0,
+  "near_duplicate_estimate": 0,
+  "pii": {},
+  "columns": [
+    {
+      "name": "product",
+      "dtype": "str",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "unique": 3,
+      "unique_pct": 100.0,
+      "kind": "text",
+      "sample_values": [
+        "Bat",
+        "Racket",
+        "Ball"
+      ]
+    },
+    {
+      "name": "price",
+      "dtype": "int64",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "unique": 3,
+      "unique_pct": 100.0,
+      "kind": "numeric",
+      "stats": {
+        "min": 300.0,
+        "max": 2500.0,
+        "mean": 1266.67,
+        "median": 1000.0
+      },
+      "outliers": 0,
+      "outlier_pct": 0.0
+    },
+    {
+      "name": "discount",
+      "dtype": "int64",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "unique": 3,
+      "unique_pct": 100.0,
+      "kind": "numeric",
+      "stats": {
+        "min": 5.0,
+        "max": 20.0,
+        "mean": 11.67,
+        "median": 10.0
+      },
+      "outliers": 0,
+      "outlier_pct": 0.0
+    }
+  ],
+  "dataset_id": "1fa5df5f",
+  "source": "json",
+  "encoding": "ascii",
+  "schema_fingerprint": "244b4f11aab435a4835a9ec0266651c0",
+  "snapshot": {
+    "parquet": "data/canonical/1fa5df5f.parquet",
+    "csv": "data/canonical/1fa5df5f.csv"
+  }
+}

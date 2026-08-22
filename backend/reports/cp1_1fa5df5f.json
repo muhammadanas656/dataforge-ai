@@ -1,0 +1,11 @@
+{
+  "domain": "e-commerce",
+  "confidence": 0.9,
+  "purpose": "Track product pricing and discount information for a small catalog.",
+  "red_flags": [
+    "Dataset contains only 3 rows, which may limit analytical insights.",
+    "All values in each column are unique (100% unique_pct), which is unusual for larger catalogs."
+  ],
+  "pii_risk": "none",
+  "next_step_hint": "Verify that the price and discount values are correctly formatted and consider gathering more product entries for robust analysis."
+}

@@ -1,0 +1,13 @@
+{
+  "domain": "e-commerce",
+  "confidence": 0.9,
+  "purpose": "Dataset likely used for analyzing product pricing and discount strategies for sports equipment.",
+  "red_flags": [
+    "duplicate_pct is 8.66% indicating many duplicate rows",
+    "near_duplicate_estimate of 262 rows suggests near-duplicates",
+    "column 'Product' has only 69 unique values (0.88% unique) across 7878 rows, indicating possible categorical mislabeling",
+    "outliers in 'Old Price' (1004) and 'Special Price' (977) suggest price anomalies"
+  ],
+  "pii_risk": "low",
+  "next_step_hint": "Start by deduplicating rows, cleaning outlier prices, and verifying product naming consistency before using the data for pricing models."
+}
