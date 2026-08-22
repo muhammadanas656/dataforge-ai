@@ -6,8 +6,9 @@ import { Card, Button, Badge } from "../components/ui";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { FeatureGuide } from "../components/FeatureGuide";
 import { WorkflowStepGuide } from "../components/WorkflowStepGuide";
-import { Database, Brain, Wrench, Shield, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
+import { Database, Brain, Wrench, Shield, CheckCircle2, Loader2, ArrowRight, Terminal } from "lucide-react";
 import ReviewSection from "../ReviewSection";
+import PipelineCodeModal from "../components/PipelineCodeModal";
 
 const STAGES = [
   { name: "Ingest & Profile", icon: Database, action: "upload" },
@@ -29,6 +30,7 @@ export default function CleaningStudioPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [showCodeModal, setShowCodeModal] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -83,12 +85,19 @@ export default function CleaningStudioPage() {
             Governed data transformation pipeline. Propose, preview, approve, and execute deterministic cleaning.
           </p>
         </div>
-        <Link href="/cleaned">
-          <Button size="sm" variant="secondary">
-            Cleaned Data <ArrowRight size={13} />
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="secondary" onClick={() => setShowCodeModal(true)}>
+            <Terminal size={13} /> Export Code
           </Button>
-        </Link>
+          <Link href="/cleaned">
+            <Button size="sm" variant="primary">
+              Cleaned Data <ArrowRight size={13} />
+            </Button>
+          </Link>
+        </div>
       </div>
+
+      <PipelineCodeModal datasetId={id} isOpen={showCodeModal} onClose={() => setShowCodeModal(false)} />
 
       {/* Non-Sophisticated Workflow Guide */}
       <WorkflowStepGuide

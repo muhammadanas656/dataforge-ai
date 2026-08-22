@@ -21,6 +21,7 @@ import { WorkflowStepGuide } from "../components/WorkflowStepGuide";
 import { InsightCard } from "../components/InsightCard";
 import { MplChart, DataTable } from "../ChartRenderer";
 import VerificationAuditBadge from "../components/VerificationAuditBadge";
+import DatasetChatBox from "../components/DatasetChatBox";
 
 function PlainEnglishDefinitionBox({ plainEnglish, result }) {
   if (!plainEnglish && !result) return null;
@@ -377,6 +378,8 @@ function EDAReportContent() {
             </div>
           </Card>
         )}
+
+        {status?.cleaned && <DatasetChatBox datasetId={id} />}
 
         {/* 🧬 Causal Drivers & Automated Hypotheses Proofs */}
         {causalData && status?.cleaned && (

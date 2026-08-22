@@ -1229,6 +1229,57 @@ def api_analyst_simulate(payload: dict = Body(...)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+# --- Phase 7: Auto-Pilot, Code Exporter & Natural Language Data Analyst ---
+from src.autopilot import run_autopilot
+from src.code_exporter import export_pipeline_code
+from src.data_analyst import query_dataset
+
+
+@app.post("/api/autopilot/run")
+def api_autopilot_run(payload: dict = Body(...)):
+    """Zero-touch end-to-end autonomous cleaning and intelligence pipeline."""
+    target = payload.get("file_path") or payload.get("url") or payload.get("dataset_id")
+    if not target:
+        raise HTTPException(status_code=400, detail="Missing 'file_path' or 'url' or 'dataset_id'")
+    
+    # If dataset_id passed, resolve to source or canonical path
+    if os.path.exists(target):
+        resolved_path = target
+    elif os.path.exists(f"uploads/{target}"):
+        resolved_path = f"uploads/{target}"
+    elif os.path.exists(f"uploads/{target}.csv"):
+        resolved_path = f"uploads/{target}.csv"
+    else:
+        # Check if matching upload file
+        matches = [f"uploads/{f}" for f in os.listdir("uploads") if target in f]
+        resolved_path = matches[0] if matches else target
+
+    session_id = payload.get("session_id", "default")
+    try:
+        return run_autopilot(resolved_path, session_id=session_id)
+    except Exception as e:
+        logger.error(f"[api] Autopilot failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/export/code/{dataset_id}")
+def api_export_code(dataset_id: str):
+    """Export standalone Python, SQL (dbt), and Airflow DAG scripts."""
+    did = _safe_did(dataset_id)
+    return export_pipeline_code(did)
+
+
+@app.post("/api/eda/query-data")
+def api_eda_query_data(payload: dict = Body(...)):
+    """Conversational Natural Language query on cleaned dataset."""
+    did = _safe_did(payload.get("dataset_id"))
+    query = payload.get("query", "").strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="Missing 'query'")
+    return query_dataset(did, query)
+
+
+
 
 
 

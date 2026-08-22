@@ -785,5 +785,295 @@
       "confidence": 0.5
     },
     "domain": "generic"
+  },
+  {
+    "name": "PassengerId",
+    "kind": "numeric",
+    "desc": {
+      "name": "PassengerId",
+      "semantic_type": "identifier",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Survived",
+    "kind": "numeric",
+    "desc": {
+      "name": "Survived",
+      "semantic_type": "target",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Pclass",
+    "kind": "numeric",
+    "desc": {
+      "name": "Pclass",
+      "semantic_type": "ordinal",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "SibSp",
+    "kind": "numeric",
+    "desc": {
+      "name": "SibSp",
+      "semantic_type": "numeric",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Parch",
+    "kind": "numeric",
+    "desc": {
+      "name": "Parch",
+      "semantic_type": "numeric",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Ticket",
+    "kind": "text",
+    "desc": {
+      "name": "Ticket",
+      "semantic_type": "identifier",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Fare",
+    "kind": "numeric",
+    "desc": {
+      "name": "Fare",
+      "semantic_type": "numeric",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Cabin",
+    "kind": "text",
+    "desc": {
+      "name": "Cabin",
+      "semantic_type": "cabin_number"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Country Name",
+    "kind": "text",
+    "desc": {
+      "name": "Country Name",
+      "semantic_type": "country",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Year",
+    "kind": "numeric",
+    "desc": {
+      "name": "Year",
+      "semantic_type": "temporal",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Value",
+    "kind": "numeric",
+    "desc": {
+      "name": "Value",
+      "semantic_type": "numeric"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "SepalLength",
+    "kind": "numeric",
+    "desc": {
+      "name": "SepalLength",
+      "semantic_type": "numeric",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "SepalWidth",
+    "kind": "numeric",
+    "desc": {
+      "name": "SepalWidth",
+      "semantic_type": "numeric",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "PetalLength",
+    "kind": "numeric",
+    "desc": {
+      "name": "PetalLength",
+      "semantic_type": "numeric",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "PetalWidth",
+    "kind": "numeric",
+    "desc": {
+      "name": "PetalWidth",
+      "semantic_type": "numeric"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Pregnancies",
+    "kind": "numeric",
+    "desc": {
+      "name": "Pregnancies",
+      "semantic_type": "count",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Glucose",
+    "kind": "numeric",
+    "desc": {
+      "name": "Glucose",
+      "semantic_type": "numeric",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "BloodPressure",
+    "kind": "numeric",
+    "desc": {
+      "name": "BloodPressure",
+      "semantic_type": "numeric",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "SkinThickness",
+    "kind": "numeric",
+    "desc": {
+      "name": "SkinThickness",
+      "semantic_type": "numeric",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Insulin",
+    "kind": "numeric",
+    "desc": {
+      "name": "Insulin",
+      "semantic_type": "numeric",
+      "meaning": "Column 'Insulin' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "source": "distilled_model",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "BMI",
+    "kind": "numeric",
+    "desc": {
+      "name": "BMI",
+      "semantic_type": "numeric",
+      "meaning": "Column 'BMI' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9666666666666667,
+      "source": "distilled_model",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "DiabetesPedigreeFunction",
+    "kind": "numeric",
+    "desc": {
+      "name": "DiabetesPedigreeFunction",
+      "semantic_type": "numeric",
+      "meaning": "Column 'DiabetesPedigreeFunction' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9666666666666667,
+      "source": "distilled_model",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Outcome",
+    "kind": "numeric",
+    "desc": {
+      "name": "Outcome",
+      "semantic_type": "numeric",
+      "meaning": "Column 'Outcome' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "source": "distilled_model"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Monthly_Spend_USD",
+    "kind": "numeric",
+    "desc": {
+      "name": "Monthly_Spend_USD",
+      "semantic_type": "numeric",
+      "meaning": "Column 'Monthly_Spend_USD' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9666666666666667,
+      "source": "distilled_model",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Support_Tickets",
+    "kind": "numeric",
+    "desc": {
+      "name": "Support_Tickets",
+      "semantic_type": "numeric",
+      "meaning": "Column 'Support_Tickets' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9666666666666667,
+      "source": "distilled_model",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Churn_Flag",
+    "kind": "numeric",
+    "desc": {
+      "name": "Churn_Flag",
+      "semantic_type": "numeric",
+      "meaning": "Column 'Churn_Flag' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "source": "distilled_model"
+    },
+    "domain": "generic"
   }
 ]

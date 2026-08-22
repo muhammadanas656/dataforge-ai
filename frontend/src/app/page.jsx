@@ -5,7 +5,7 @@ import { uploadFile } from "./api";
 import { useDataset } from "./components/DatasetContext";
 import { Card, StatTile, Badge, Button } from "./components/ui";
 import WebScraperModal from "./components/WebScraperModal";
-import { Upload, Loader2, Wrench, BarChart3, Database, FileText, PlusCircle, X, Globe } from "lucide-react";
+import { Upload, Loader2, Wrench, BarChart3, Database, FileText, PlusCircle, X, Globe, Sparkles, Play, CheckCircle2 } from "lucide-react";
 import DatasetSummary from "./DatasetSummary";
 import { WorkflowStepGuide } from "./components/WorkflowStepGuide";
 
@@ -15,6 +15,32 @@ export default function Overview() {
   const [status, setStatus] = useState(null);
   const [profile, setProfile] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [autopilotLoading, setAutopilotLoading] = useState(false);
+  const [autopilotResult, setAutopilotResult] = useState(null);
+
+  const handleRunAutopilot = async () => {
+    if (!id) return;
+    setAutopilotLoading(true);
+    setErrorMsg(null);
+    try {
+      const res = await fetch("http://localhost:8000/api/autopilot/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dataset_id: id })
+      });
+      if (!res.ok) throw new Error("Auto-Pilot run failed");
+      const data = await res.json();
+      setAutopilotResult(data);
+      const statRes = await fetch(`http://localhost:8000/api/status/${id}`);
+      if (statRes.ok) setStatus(await statRes.json());
+    } catch (e) {
+      console.error(e);
+      setErrorMsg(e.message || "Auto-Pilot execution failed");
+    } finally {
+      setAutopilotLoading(false);
+    }
+  };
+
   const [showUpload, setShowUpload] = useState(false);
   const [showScraper, setShowScraper] = useState(false);
 
@@ -183,6 +209,63 @@ export default function Overview() {
               </div>
             </Card>
           )}
+
+          {/* Autonomous Zero-Touch Auto-Pilot Card */}
+          <Card className="border-cyan-500/40 bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 p-5 shadow-lg">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="text-cyan-400" size={16} />
+                  <h3 className="text-sm font-bold text-slate-100">Autonomous Zero-Touch Auto-Pilot</h3>
+                  <Badge variant="cyan" size="xs">1-Click Pipeline</Badge>
+                </div>
+                <p className="text-xs text-slate-400 max-w-xl">
+                  Automatically chains Profiling (CP1) → Semantic Dict (CP2) → Cleaning Plan (CP3) → Governed Execution (CP4) → Visual EDA & Causal DAG in a single autonomous run.
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                {status?.cleaned && (
+                  <Link href="/eda">
+                    <Button size="sm" variant="secondary">
+                      <BarChart3 size={13} /> View Causal EDA
+                    </Button>
+                  </Link>
+                )}
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={handleRunAutopilot}
+                  disabled={autopilotLoading}
+                >
+                  {autopilotLoading ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />}
+                  <span>{autopilotLoading ? "Running Auto-Pilot..." : "Launch Auto-Pilot"}</span>
+                </Button>
+              </div>
+            </div>
+
+            {autopilotResult && (
+              <div className="mt-4 rounded-xl border border-cyan-800/40 bg-cyan-950/20 p-3.5 text-xs animate-fadeIn">
+                <div className="flex items-center gap-2 font-bold text-cyan-300 mb-2">
+                  <CheckCircle2 size={14} className="text-emerald-400" />
+                  <span>Auto-Pilot Completed in {autopilotResult.elapsed_seconds}s</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 font-mono text-[11px] text-slate-300">
+                  <div className="rounded bg-slate-900/80 p-2">
+                    <span className="text-slate-500">Quality:</span> {autopilotResult.quality_improvement?.before}% → {autopilotResult.quality_improvement?.after}% (+{autopilotResult.quality_improvement?.delta}%)
+                  </div>
+                  <div className="rounded bg-slate-900/80 p-2">
+                    <span className="text-slate-500">Causal Insight:</span> {autopilotResult.causal_primary_driver}
+                  </div>
+                  <div className="rounded bg-slate-900/80 p-2">
+                    <span className="text-slate-500">Hypotheses:</span> {autopilotResult.eda_summary?.hypotheses_count} tested
+                  </div>
+                  <div className="rounded bg-slate-900/80 p-2">
+                    <span className="text-slate-500">Stages:</span> 5 / 5 Completed
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
 
           {/* Key Stat Tiles */}
           {profile && (
