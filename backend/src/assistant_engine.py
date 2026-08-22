@@ -176,7 +176,9 @@ class AssistantEngine:
                             "dataset_id": res.get("dataset_id"),
                             "quality_after": res.get("execution", {}).get("after_quality"),
                             "eda_link": "/eda",
-                            "cleaning_link": "/cleaning"
+                            "cleaning_link": "/cleaning",
+                            "route_link": "/eda",
+                            "route_label": "Causal EDA Studio"
                         }
                     }
                 else:
@@ -211,7 +213,9 @@ class AssistantEngine:
                         "type": "leads_ready",
                         "dataset_id": lead_res.get("dataset_id"),
                         "count": lead_res.get("leads_extracted"),
-                        "penetration": lead_res.get("penetration_rate_pct")
+                        "penetration": lead_res.get("penetration_rate_pct"),
+                        "route_link": "/intel",
+                        "route_label": "Market Intelligence & Leads"
                     }
                 }
             except Exception as e:
@@ -234,7 +238,9 @@ class AssistantEngine:
                     ),
                     "action_card": {
                         "type": "code_exported",
-                        "filename": code_res.get("python", {}).get("filename", "pipeline.py")
+                        "filename": code_res.get("python", {}).get("filename", "pipeline.py"),
+                        "route_link": "/cleaning",
+                        "route_label": "Cleaning & Pipeline Studio"
                     }
                 }
             except Exception as e:
@@ -262,7 +268,9 @@ class AssistantEngine:
                     ),
                     "action_card": {
                         "type": "triz_resolved",
-                        "principles_count": len(principles)
+                        "principles_count": len(principles),
+                        "route_link": "/trends",
+                        "route_label": "TRIZ Invention Studio"
                     }
                 }
             except Exception as e:

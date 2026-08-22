@@ -18,16 +18,19 @@ import {
   Terminal
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { authFetch } from "../api";
 import { IconAutopilot, IconWebRadar, IconCausalEDA, IconCodeExporter, IconTrizInvention } from "./AntigravityIcons";
 
 export default function AssistantWidget() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [contextData, setContextData] = useState(null);
   const [tokenStats, setTokenStats] = useState({ total_tokens_saved: 0, cached_queries_count: 0 });
+  const [softRedirect, setSoftRedirect] = useState(null);
   const messagesEndRef = useRef(null);
   const sessionId = useRef(`sess_${Math.random().toString(36).substring(2, 9)}`);
 
@@ -182,6 +185,12 @@ export default function AssistantWidget() {
 
       if (res.ok) {
         const data = await res.json();
+        if (data.action_card?.route_link) {
+          setSoftRedirect({
+            route: data.action_card.route_link,
+            label: data.action_card.route_label || "Workspace"
+          });
+        }
         setMessages((prev) => [
           ...prev,
           {
@@ -257,6 +266,34 @@ export default function AssistantWidget() {
               <X size={16} />
             </button>
           </div>
+
+          {/* Soft Non-Intrusive Redirection Notice */}
+          {softRedirect && (
+            <div className="flex items-center justify-between p-2.5 bg-gradient-to-r from-indigo-500/15 to-cyan-500/15 border-b border-cyan-500/30 text-[10px] animate-in fade-in slide-in-from-top-2">
+              <span className="text-slate-700 dark:text-slate-200 font-medium truncate">
+                ✨ <strong>{softRedirect.label}</strong> is ready to explore.
+              </span>
+              <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                <button
+                  onClick={() => {
+                    router.push(softRedirect.route);
+                    setSoftRedirect(null);
+                  }}
+                  className="px-2 py-0.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition flex items-center gap-1 shadow-2xs text-[9px]"
+                >
+                  <span>Switch View</span>
+                  <ArrowRight size={9} />
+                </button>
+                <button
+                  onClick={() => setSoftRedirect(null)}
+                  className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded"
+                  title="Dismiss notice and stay on current page"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Messages Feed */}
           <div className="flex-1 overflow-y-auto p-3.5 space-y-3 text-xs">
@@ -355,11 +392,15 @@ export default function AssistantWidget() {
                             <CheckCircle2 size={12} className="text-emerald-400" />
                             <span>Action Completed Autonomously</span>
                           </div>
-                          {msg.action_card.eda_link && (
+                          {msg.action_card.route_link && (
                             <div className="flex gap-2 pt-1">
-                              <Link href={msg.action_card.eda_link} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600 text-white font-bold hover:bg-cyan-500 transition">
-                                View Causal EDA <ArrowRight size={10} />
-                              </Link>
+                              <button
+                                onClick={() => router.push(msg.action_card.route_link)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600 text-white font-bold hover:bg-cyan-500 transition cursor-pointer"
+                              >
+                                <span>Open {msg.action_card.route_label || "Studio"}</span>
+                                <ArrowRight size={10} />
+                              </button>
                             </div>
                           )}
                         </div>
