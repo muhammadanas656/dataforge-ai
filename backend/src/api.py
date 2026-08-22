@@ -775,6 +775,16 @@ def crawl_niche_websites(payload: dict = Body(default_factory=dict)):
     return res
 
 
+@app.post("/api/research/scrape-leads")
+def scrape_niche_leads(payload: dict = Body(default_factory=dict)):
+    """Deep niche lead & contact scraping with email, phone, social & penetration analytics."""
+    niche = payload.get("niche", "Target Enterprise Market")
+    custom_urls = payload.get("custom_urls", [])
+    max_pages = min(max(1, payload.get("max_pages", 5)), 20)
+    res = scraper.extract_niche_leads_and_contacts(niche=niche, target_urls=custom_urls, max_pages=max_pages)
+    return res
+
+
 @app.post("/api/research/blueprint")
 def create_business_blueprint(payload: dict = Body(default_factory=dict)):
     niche = payload.get("niche", "Market Opportunity")
