@@ -1,9 +1,24 @@
 import os
+import contextvars
 from pathlib import Path
 from importlib import import_module
 from dotenv import load_dotenv
 from src.token_tracker import tracker
 from src.utils import logger
+
+# Context variables for per-request Bring-Your-Own-Key (BYOK) isolation
+_ctx_provider = contextvars.ContextVar("user_provider", default=None)
+_ctx_api_key = contextvars.ContextVar("user_api_key", default=None)
+_ctx_model = contextvars.ContextVar("user_model", default=None)
+
+def set_request_credentials(provider=None, api_key=None, model=None):
+    """Sets per-request credentials from client headers without sharing across users."""
+    if provider:
+        _ctx_provider.set(provider)
+    if api_key:
+        _ctx_api_key.set(api_key)
+    if model:
+        _ctx_model.set(model)
 
 # Load environment configuration from specified path first, fallback to local .env
 env_path = Path(r"C:\skills development\learning datascience\system 1\The Data Intelligence Platform being built\.env")
@@ -13,7 +28,12 @@ else:
     load_dotenv()
 
 def get_client(custom_provider=None, custom_key=None, custom_model=None):
-    # Check settings.json for persisted user settings
+    # 1. First priority: Per-request BYOK credentials from user's browser header
+    req_provider = _ctx_provider.get()
+    req_key = _ctx_api_key.get()
+    req_model = _ctx_model.get()
+
+    # 2. Second priority: Local settings.json
     settings = {}
     if os.path.exists("data/settings.json"):
         try:
@@ -22,9 +42,9 @@ def get_client(custom_provider=None, custom_key=None, custom_model=None):
         except Exception:
             pass
 
-    provider = (custom_provider or os.getenv("api_provider") or settings.get("provider") or "groq").lower()
-    key = custom_key or os.getenv("api_key") or os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY") or settings.get("api_key")
-    model = custom_model or os.getenv("api_model") or settings.get("model") or ("openai/gpt-oss-20b" if provider == "groq" else "gpt-4o-mini")
+    provider = (custom_provider or req_provider or os.getenv("api_provider") or settings.get("provider") or "groq").lower()
+    key = custom_key or req_key or os.getenv("api_key") or os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY") or settings.get("api_key")
+    model = custom_model or req_model or os.getenv("api_model") or settings.get("model") or ("openai/gpt-oss-20b" if provider == "groq" else "gpt-4o-mini")
 
     try:
         mod = import_module(provider)
@@ -132,5 +152,3 @@ async def tracked_stream_chat(run_id, stage, agent, messages, temperature=0.2, m
         if isinstance(item, Exception):
             raise item
         yield item
-
-

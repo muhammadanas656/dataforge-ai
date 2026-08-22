@@ -1,9 +1,11 @@
 /**
- * DataForge AI API Client & Endpoint Config
- * Resolves API URL with priority:
- * 1. User-customized URL saved in localStorage (e.g. deployed backend URL)
- * 2. NEXT_PUBLIC_API_URL environment variable (configured in Vercel / CI)
- * 3. Default fallback: http://localhost:8000
+ * DataForge AI API Client & BYOK (Bring-Your-Own-Key) Manager
+ *
+ * Privacy & Security Architecture:
+ * - Each user's API Key and provider choices remain in their own browser (localStorage).
+ * - Keys are NEVER hardcoded into public frontend builds or exposed to other users.
+ * - All backend requests seamlessly pass 'X-API-Key', 'X-API-Provider', 'X-API-Model'
+ *   headers for per-request isolated inference.
  */
 
 export function getApiUrl() {
@@ -26,10 +28,62 @@ export function setCustomApiUrl(url) {
   }
 }
 
+export function getUserCredentials() {
+  if (typeof window === "undefined") {
+    return { provider: "groq", api_key: "", model: "openai/gpt-oss-20b" };
+  }
+  return {
+    provider: localStorage.getItem("dataforge_user_provider") || "groq",
+    api_key: localStorage.getItem("dataforge_user_api_key") || "",
+    model: localStorage.getItem("dataforge_user_model") || "openai/gpt-oss-20b",
+  };
+}
+
+export function setUserCredentials({ provider, api_key, model }) {
+  if (typeof window !== "undefined") {
+    if (provider) localStorage.setItem("dataforge_user_provider", provider);
+    if (api_key !== undefined) localStorage.setItem("dataforge_user_api_key", api_key);
+    if (model) localStorage.setItem("dataforge_user_model", model);
+  }
+}
+
+export function clearUserCredentials() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("dataforge_user_api_key");
+  }
+}
+
+/**
+ * Standard Authenticated Fetch that attaches BYOK credentials to headers
+ */
+export async function authFetch(input, init = {}) {
+  const url = typeof input === "string" && !input.startsWith("http")
+    ? `${getApiUrl()}${input.startsWith("/") ? "" : "/"}${input}`
+    : input;
+
+  const creds = getUserCredentials();
+  const headers = new Headers(init.headers || {});
+
+  if (creds.api_key) {
+    headers.set("X-API-Key", creds.api_key);
+  }
+  if (creds.provider) {
+    headers.set("X-API-Provider", creds.provider);
+  }
+  if (creds.model) {
+    headers.set("X-API-Model", creds.model);
+  }
+
+  return fetch(url, {
+    ...init,
+    headers,
+  });
+}
+
 export async function uploadFile(file) {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await fetch(`${getApiUrl()}/api/upload`, {
+  const res = await authFetch(`/api/upload`, {
     method: "POST",
     body: formData,
   });
@@ -40,7 +94,7 @@ export async function uploadFile(file) {
 }
 
 export async function runStage(did, stage) {
-  const res = await fetch(`${getApiUrl()}/api/${stage}/${did}`, {
+  const res = await authFetch(`/api/stage/${stage}/${did}`, {
     method: "POST",
   });
   if (!res.ok) {
@@ -50,8 +104,8 @@ export async function runStage(did, stage) {
 }
 
 export async function getTokens(did) {
-  const url = did ? `${getApiUrl()}/api/tokens?run_id=${did}` : `${getApiUrl()}/api/tokens`;
-  const res = await fetch(url);
+  const url = did ? `/api/tokens?run_id=${did}` : `/api/tokens`;
+  const res = await authFetch(url);
   if (!res.ok) {
     throw new Error(`Fetch tokens failed: ${res.statusText}`);
   }

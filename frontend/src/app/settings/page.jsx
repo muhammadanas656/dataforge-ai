@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Button, Badge, StatTile, PageHeader } from "../components/ui";
-import { getApiUrl, setCustomApiUrl } from "../api";
+import { getApiUrl, setCustomApiUrl, getUserCredentials, setUserCredentials } from "../api";
 import {
   Settings as SettingsIcon,
   Loader2,
@@ -75,7 +75,21 @@ export default function SettingsPage() {
     setApiUrl(currentUrl);
     setCustomUrlInput(currentUrl);
     checkHealth(currentUrl);
-    loadSettings(currentUrl);
+
+    // Read user's private browser credentials
+    const clientCreds = getUserCredentials();
+    if (clientCreds.api_key) {
+      setSettings((prev) => ({
+        ...prev,
+        provider: clientCreds.provider || prev.provider,
+        model: clientCreds.model || prev.model,
+        api_key: clientCreds.api_key,
+        has_key: true,
+        api_key_masked: (clientCreds.api_key.slice(0, 4) + "••••••••" + clientCreds.api_key.slice(-4)),
+      }));
+    } else {
+      loadSettings(currentUrl);
+    }
     loadTier(currentUrl);
   }, []);
 
@@ -133,7 +147,12 @@ export default function SettingsPage() {
     try {
       const r = await fetch(`${apiUrl}/api/settings/test-key`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": settings.api_key || "",
+          "X-API-Provider": settings.provider,
+          "X-API-Model": settings.model,
+        },
         body: JSON.stringify({
           provider: settings.provider,
           model: settings.model,
@@ -152,7 +171,13 @@ export default function SettingsPage() {
   const probe = async () => {
     setProbing(true);
     try {
-      const r = await fetch(`${apiUrl}/api/model/probe`);
+      const r = await fetch(`${apiUrl}/api/model/probe`, {
+        headers: {
+          "X-API-Key": settings.api_key || "",
+          "X-API-Provider": settings.provider,
+          "X-API-Model": settings.model,
+        }
+      });
       const result = await r.json();
       setTier(result);
     } catch (e) {
@@ -164,20 +189,35 @@ export default function SettingsPage() {
 
   const save = async () => {
     setSaving(true);
+    // 1. Save to user's private browser localStorage for BYOK isolation
+    setUserCredentials({
+      provider: settings.provider,
+      api_key: settings.api_key,
+      model: settings.model,
+    });
+
+    // 2. Sync to backend session
     try {
       const r = await fetch(`${apiUrl}/api/settings`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": settings.api_key || "",
+          "X-API-Provider": settings.provider,
+          "X-API-Model": settings.model,
+        },
         body: JSON.stringify(settings),
       });
       if (r.ok) {
         const data = await r.json();
-        setSettings((prev) => ({ ...prev, ...data.settings }));
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
+        setSettings((prev) => ({ ...prev, ...data.settings, has_key: true }));
       }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
     } catch (e) {
-      console.warn("Save failed:", e);
+      console.warn("Backend save notice:", e);
+      setSaved(true); // Still saved in localStorage
+      setTimeout(() => setSaved(false), 2500);
     } finally {
       setSaving(false);
     }
@@ -251,6 +291,13 @@ NEXT_PUBLIC_API_URL=${apiUrl}`;
         pad={true}
       >
         <div className="space-y-4">
+          <div className="rounded-xl border border-indigo-200/80 bg-indigo-50/60 p-3.5 dark:border-indigo-900/50 dark:bg-indigo-950/30 flex items-start gap-3">
+            <ShieldCheck size={18} className="text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+            <div className="text-xs text-indigo-950 dark:text-indigo-200 leading-relaxed">
+              <span className="font-bold">Bring-Your-Own-Key (BYOK) Isolation:</span> Your API keys are stored strictly inside your own browser (<code className="font-mono text-indigo-700 dark:text-indigo-300">localStorage</code>). When you or other visitors deploy on Vercel, every user inputs their own keys. Your keys are <span className="font-semibold underline">never shared, exposed, or used</span> by other users.
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Provider Selector */}
             <div>

@@ -44,6 +44,16 @@ class WorkspaceMiddleware(BaseHTTPMiddleware):
         finally:
             reset_workspace()
 
+class BYOKMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        provider = request.headers.get("x-api-provider")
+        key = request.headers.get("x-api-key")
+        model = request.headers.get("x-api-model")
+        if provider or key or model:
+            llm.set_request_credentials(provider=provider, api_key=key, model=model)
+        return await call_next(request)
+
+app.add_middleware(BYOKMiddleware)
 app.add_middleware(WorkspaceMiddleware)
 
 os.makedirs("uploads", exist_ok=True)
