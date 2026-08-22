@@ -8,6 +8,7 @@ import WebScraperModal from "./components/WebScraperModal";
 import { Upload, Loader2, Wrench, BarChart3, Database, FileText, PlusCircle, X, Globe, Sparkles, Play, CheckCircle2 } from "lucide-react";
 import DatasetSummary from "./DatasetSummary";
 import { WorkflowStepGuide } from "./components/WorkflowStepGuide";
+import AntigravityHeroGraphic from "./components/AntigravityHeroGraphic";
 
 export default function Overview() {
   const { id, setId, refresh } = useDataset();
@@ -166,19 +167,38 @@ export default function Overview() {
       )}
 
       {showUpload && !showScraper && (
-        <label className="flex h-56 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white transition hover:border-indigo-500 hover:bg-indigo-50/40 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-500 dark:hover:bg-slate-800/60 shadow-sm animate-fadeIn">
-          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400 shadow-sm">
-            <Upload size={20} />
+        <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white/70 dark:border-slate-800/80 dark:bg-slate-900/60 backdrop-blur-xl p-8 shadow-2xl transition-all duration-300 hover:border-cyan-500/50 animate-fadeIn">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <div className="md:col-span-7 space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200/60 dark:border-cyan-800/60">
+                <Sparkles size={12} className="text-cyan-500 animate-pulse-soft" />
+                <span>Autonomous Data Engineering Cloud</span>
+              </div>
+              <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                {id ? "Ingest Another Dataset" : "Weightless & Governed Data Science"}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
+                Drop your raw CSV files, crawl niche competitor tables, or extract business leads. DataForge automatically profiles, plans, cleans, and runs causal EDA in seconds.
+              </p>
+              
+              <label className="flex cursor-pointer items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.02] hover:shadow-indigo-500/40">
+                <Upload size={16} />
+                <span>{id ? "Choose Another CSV" : "Select CSV / Data File to Start"}</span>
+                <input type="file" className="hidden" onChange={handleUpload} />
+              </label>
+              {loading && (
+                <div className="flex items-center gap-2 text-xs text-indigo-500 font-semibold">
+                  <Loader2 className="animate-spin" size={14} />
+                  <span>Profiling dataset with deterministic Phase 1 engine...</span>
+                </div>
+              )}
+            </div>
+
+            <div className="md:col-span-5 flex justify-center">
+              <AntigravityHeroGraphic />
+            </div>
           </div>
-          <p className="text-sm font-bold">
-            {id ? "Upload another dataset" : "Drop a dataset to begin"}
-          </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            CSV · JSON · Excel · Parquet · or custom source plugins
-          </p>
-          <input type="file" className="hidden" onChange={handleUpload} />
-          {loading && <Loader2 className="mt-3 animate-spin text-indigo-600" size={18} />}
-        </label>
+        </div>
       )}
 
       {id && (
