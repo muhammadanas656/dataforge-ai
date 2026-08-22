@@ -165,6 +165,44 @@ export default function AssistantWidget() {
     }
   };
 
+  const handleExecuteProposal = async (proposal) => {
+    if (!proposal || isStreaming) return;
+    setIsStreaming(true);
+
+    try {
+      const res = await authFetch(`/api/assistant/execute-action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId.current,
+          tool_name: proposal.tool_name,
+          args: proposal.args || {}
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: data.response || "Action executed successfully.",
+            action_card: data.action_card
+          }
+        ]);
+      } else {
+        throw new Error("Action execution failed");
+      }
+    } catch (e) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: `⚠️ Failed to execute action: ${e.message}` }
+      ]);
+    } finally {
+      setIsStreaming(false);
+    }
+  };
+
   const suggestedQuestions = [
     { label: "🚀 Run Auto-Pilot on my dataset", action: true },
     { label: "🎯 Scrape leads for AI startups", action: true },
@@ -278,18 +316,52 @@ export default function AssistantWidget() {
                   </div>
                   <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
 
-                  {/* Action Execution Card */}
+                  {/* Interactive Action Confirmation & Execution Cards */}
                   {msg.action_card && (
-                    <div className="mt-2.5 rounded-xl border border-cyan-500/30 bg-cyan-950/20 p-2.5 text-[10px] space-y-1.5">
-                      <div className="flex items-center gap-1.5 font-bold text-cyan-400">
-                        <CheckCircle2 size={12} className="text-emerald-400" />
-                        <span>Action Completed Autonomously</span>
-                      </div>
-                      {msg.action_card.eda_link && (
-                        <div className="flex gap-2 pt-1">
-                          <Link href={msg.action_card.eda_link} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600 text-white font-bold hover:bg-cyan-500 transition">
-                            View Causal EDA <ArrowRight size={10} />
-                          </Link>
+                    <div className="mt-2.5 rounded-xl border p-2.5 text-[10px] space-y-2">
+                      {msg.action_card.type === "action_proposal" ? (
+                        <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-2.5 space-y-2">
+                          <div className="flex items-center gap-1.5 font-bold text-amber-500">
+                            <Sparkles size={12} className="animate-pulse" />
+                            <span>Action Proposal: {msg.action_card.action_label}</span>
+                          </div>
+                          <p className="text-[10px] text-slate-600 dark:text-slate-300">
+                            {msg.action_card.impact}
+                          </p>
+                          <div className="flex items-center gap-2 pt-1">
+                            <button
+                              onClick={() => handleExecuteProposal(msg.action_card)}
+                              disabled={isStreaming}
+                              className="px-3 py-1 rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold transition shadow-xs"
+                            >
+                              ✓ Confirm & Execute
+                            </button>
+                            <button
+                              onClick={() => {
+                                setMessages((prev) => [
+                                  ...prev,
+                                  { role: "assistant", content: "Action cancelled. Let me know if you would like to do something else." }
+                                ]);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 transition"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="rounded-lg bg-cyan-950/20 border border-cyan-500/30 p-2 space-y-1.5">
+                          <div className="flex items-center gap-1.5 font-bold text-cyan-400">
+                            <CheckCircle2 size={12} className="text-emerald-400" />
+                            <span>Action Completed Autonomously</span>
+                          </div>
+                          {msg.action_card.eda_link && (
+                            <div className="flex gap-2 pt-1">
+                              <Link href={msg.action_card.eda_link} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600 text-white font-bold hover:bg-cyan-500 transition">
+                                View Causal EDA <ArrowRight size={10} />
+                              </Link>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

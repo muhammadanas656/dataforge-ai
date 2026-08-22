@@ -131,34 +131,31 @@ class AssistantEngine:
                     }
         return None
 
-    def _detect_and_execute_tool(self, query: str, session_id: str, ctx: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Detect actionable user commands and execute underlying tools autonomously."""
-        q = query.lower().strip()
-        dataset_id = ctx.get("active_dataset_id") or "none"
+    def execute_named_tool(self, tool_name: str, args: Dict[str, Any], session_id: str = "default") -> Dict[str, Any]:
+        """Directly execute a named tool on the user's behalf."""
+        dataset_id = args.get("dataset_id", "none")
 
-        # 1. Run Auto-Pilot
-        if any(k in q for k in ["run autopilot", "run auto pilot", "clean my dataset", "auto clean", "clean this dataset", "launch autopilot"]):
+        if tool_name == "run_autopilot":
             try:
                 from src.autopilot import run_autopilot
-                # Locate raw or canonical CSV
-                csv_path = None
-                if dataset_id and dataset_id != "none":
-                    candidates = [
-                        f"uploads/raw_{dataset_id}.csv",
-                        f"uploads/{dataset_id}.csv",
-                        f"data/canonical/{dataset_id}.csv",
-                        f"data/canonical/{dataset_id}_cleaned.csv"
-                    ]
-                    for c in candidates:
-                        if os.path.exists(c):
-                            csv_path = c
-                            break
-                if not csv_path:
-                    # Look in uploads for any recent CSV
-                    import glob
-                    files = glob.glob("uploads/*.csv")
-                    if files:
-                        csv_path = files[-1]
+                csv_path = args.get("csv_path")
+                if not csv_path or not os.path.exists(csv_path):
+                    if dataset_id and dataset_id != "none":
+                        candidates = [
+                            f"uploads/raw_{dataset_id}.csv",
+                            f"uploads/{dataset_id}.csv",
+                            f"data/canonical/{dataset_id}.csv",
+                            f"data/canonical/{dataset_id}_cleaned.csv"
+                        ]
+                        for c in candidates:
+                            if os.path.exists(c):
+                                csv_path = c
+                                break
+                    if not csv_path:
+                        import glob
+                        files = glob.glob("uploads/*.csv")
+                        if files:
+                            csv_path = files[-1]
 
                 if csv_path and os.path.exists(csv_path):
                     res = run_autopilot(csv_path)
@@ -186,16 +183,15 @@ class AssistantEngine:
                     return {
                         "tool_executed": "run_autopilot",
                         "status": "info",
-                        "response": "⚠️ No active dataset file found to clean. Please upload a CSV first or click **'Scrape from Web'** to ingest data.",
+                        "response": "⚠️ No active dataset file found to clean. Please upload a CSV first.",
                         "action_card": {"type": "upload_prompt"}
                     }
             except Exception as e:
                 logger.error(f"[copilot_tool] Auto-pilot execution error: {e}")
+                return {"tool_executed": "run_autopilot", "status": "error", "response": f"⚠️ Auto-Pilot error: {str(e)}"}
 
-        # 2. Scrape Niche Leads
-        scrape_match = re.search(r'(?:scrape|find|get)\s+(?:leads|contacts|emails)\s+(?:for|in|about)\s+(.+)', q)
-        if scrape_match or "scrape leads" in q:
-            niche_target = scrape_match.group(1).strip() if scrape_match else "Autonomous Edge AI Systems"
+        elif tool_name == "extract_niche_leads":
+            niche_target = args.get("niche", "Autonomous Edge AI Systems")
             try:
                 from src.scraper_agent import scraper
                 lead_res = scraper.extract_niche_leads_and_contacts(niche=niche_target, max_pages=2)
@@ -220,9 +216,9 @@ class AssistantEngine:
                 }
             except Exception as e:
                 logger.error(f"[copilot_tool] Scraper tool error: {e}")
+                return {"tool_executed": "extract_niche_leads", "status": "error", "response": f"⚠️ Scraper error: {str(e)}"}
 
-        # 3. Export Pipeline Code
-        if any(k in q for k in ["export code", "export pipeline", "give me python code", "download script", "pipeline code"]):
+        elif tool_name == "export_pipeline_code":
             try:
                 from src.code_exporter import export_pipeline_code
                 code_res = export_pipeline_code(dataset_id)
@@ -243,12 +239,15 @@ class AssistantEngine:
                 }
             except Exception as e:
                 logger.error(f"[copilot_tool] Code exporter error: {e}")
+                return {"tool_executed": "export_pipeline_code", "status": "error", "response": f"⚠️ Exporter error: {str(e)}"}
 
-        # 4. Resolve TRIZ Contradiction
-        if any(k in q for k in ["resolve triz", "triz contradiction", "invent solution"]):
+        elif tool_name == "resolve_triz":
+            imp = args.get("improving", "speed")
+            wors = args.get("worsening", "energy_efficiency")
+            dom = args.get("domain", "edge_ai_hardware")
             try:
                 from src.triz_engine import triz_engine
-                triz_res = triz_engine.resolve_contradiction("speed", "energy_efficiency", "edge_ai_hardware")
+                triz_res = triz_engine.resolve_contradiction(imp, wors, dom)
                 principles = triz_res.get("inventive_principles", [])
                 p_text = "\n".join([f"- **Principle #{p.get('id')}: {p.get('name')}** — {p.get('description')}" for p in principles[:3]])
                 return {
@@ -256,8 +255,8 @@ class AssistantEngine:
                     "status": "success",
                     "response": (
                         f"💡 **TRIZ 39×40 Contradiction Matrix Resolution:**\n\n"
-                        f"- **Improving Parameter:** `Speed`\n"
-                        f"- **Worsening Parameter:** `Energy Efficiency`\n\n"
+                        f"- **Improving Parameter:** `{imp}`\n"
+                        f"- **Worsening Parameter:** `{wors}`\n\n"
                         f"**Recommended Inventive Principles:**\n{p_text}\n\n"
                         f"👉 [Open TRIZ Invention Studio](/trends)"
                     ),
@@ -268,6 +267,78 @@ class AssistantEngine:
                 }
             except Exception as e:
                 logger.error(f"[copilot_tool] TRIZ tool error: {e}")
+                return {"tool_executed": "resolve_triz", "status": "error", "response": f"⚠️ TRIZ error: {str(e)}"}
+
+        return {"status": "error", "response": f"Unknown tool: {tool_name}"}
+
+    def _detect_and_execute_tool(self, query: str, session_id: str, ctx: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Detect actionable user commands and handle Confirmation Protocol vs Immediate Execution."""
+        q = query.lower().strip()
+        dataset_id = ctx.get("active_dataset_id") or "none"
+
+        # Toggle Confirmation Protocol
+        if any(k in q for k in ["ask me before", "require confirmation", "confirm before", "always ask first"]):
+            self.user_profile["require_confirmation"] = True
+            self._save_user_profile()
+            return {
+                "tool_executed": "toggle_confirmation",
+                "status": "success",
+                "response": "🔒 **Confirmation Protocol Enabled.** I will now always propose actions and ask for your 1-click confirmation before executing any tool or data transformation."
+            }
+        elif any(k in q for k in ["run automatically", "disable confirmation", "no confirmation", "full autonomous mode"]):
+            self.user_profile["require_confirmation"] = False
+            self._save_user_profile()
+            return {
+                "tool_executed": "toggle_confirmation",
+                "status": "success",
+                "response": "⚡ **Full Autonomous Execution Enabled.** I will now execute requested tools and data cleaning pipelines immediately upon command."
+            }
+
+        require_confirm = self.user_profile.get("require_confirmation", False)
+
+        # 1. Run Auto-Pilot Command
+        if any(k in q for k in ["run autopilot", "run auto pilot", "clean my dataset", "auto clean", "clean this dataset", "launch autopilot"]):
+            if require_confirm:
+                return {
+                    "tool_executed": "action_proposal",
+                    "status": "proposal",
+                    "response": f"⚠️ **Confirmation Required:** I am ready to launch the 1-Click Auto-Pilot on dataset `{dataset_id}`.\n\n- **Impact:** Automatically profiles, imputes missing values, clips outliers, and computes Causal DAGs.\n\nWould you like me to proceed?",
+                    "action_card": {
+                        "type": "action_proposal",
+                        "tool_name": "run_autopilot",
+                        "args": {"dataset_id": dataset_id},
+                        "action_label": "Launch Auto-Pilot Pipeline",
+                        "impact": "Executes full CP1-CP4 transformation and Causal DAG"
+                    }
+                }
+            return self.execute_named_tool("run_autopilot", {"dataset_id": dataset_id}, session_id)
+
+        # 2. Scrape Niche Leads Command
+        scrape_match = re.search(r'(?:scrape|find|get)\s+(?:leads|contacts|emails)\s+(?:for|in|about)\s+(.+)', q)
+        if scrape_match or "scrape leads" in q:
+            niche_target = scrape_match.group(1).strip() if scrape_match else "Autonomous Edge AI Systems"
+            if require_confirm:
+                return {
+                    "tool_executed": "action_proposal",
+                    "status": "proposal",
+                    "response": f"⚠️ **Confirmation Required:** I am ready to scrape niche business leads for `{niche_target}`.\n\n- **Impact:** Crawls target niche domains, de-obfuscates Cloudflare emails, and registers a new CSV dataset.\n\nWould you like me to proceed?",
+                    "action_card": {
+                        "type": "action_proposal",
+                        "tool_name": "extract_niche_leads",
+                        "args": {"niche": niche_target},
+                        "action_label": f"Scrape Leads for {niche_target}",
+                        "impact": "Ultra-penetration web crawl across niche directories"
+                    }
+                }
+            return self.execute_named_tool("extract_niche_leads", {"niche": niche_target}, session_id)
+
+        # 3. Export Pipeline Code Command
+        if any(k in q for k in ["export code", "export pipeline", "give me python code", "download script", "pipeline code"]):
+            return self.execute_named_tool("export_pipeline_code", {"dataset_id": dataset_id}, session_id)
+
+        # 4. Resolve TRIZ Contradiction Command
+        if any(k in q for k in ["resolve triz", "triz contradiction", "invent solution"]):
+            return self.execute_named_tool("resolve_triz", {"improving": "speed", "worsening": "energy_efficiency", "domain": "edge_ai_hardware"}, session_id)
 
         return None
 
@@ -320,6 +391,7 @@ class AssistantEngine:
             self._record_turn(session_id, query, tool_res["response"])
             return {
                 "response": tool_res["response"],
+                "status": tool_res.get("status", "success"),
                 "tool_executed": tool_res.get("tool_executed"),
                 "action_card": tool_res.get("action_card"),
                 "tokens_saved": 500,

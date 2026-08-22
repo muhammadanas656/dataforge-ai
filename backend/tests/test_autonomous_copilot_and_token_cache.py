@@ -8,6 +8,16 @@ import json
 import pandas as pd
 from src.assistant_engine import assistant_engine, AssistantEngine
 
+@pytest.fixture(autouse=True)
+def reset_profile_state():
+    """Ensure require_confirmation is False before each test."""
+    assistant_engine.user_profile["require_confirmation"] = False
+    assistant_engine._save_user_profile()
+    yield
+    assistant_engine.user_profile["require_confirmation"] = False
+    assistant_engine._save_user_profile()
+
+
 @pytest.fixture
 def mock_active_dataset(tmp_path):
     """Create a sample dataset and canonical cleaning artifact for testing."""
@@ -96,3 +106,41 @@ def test_copilot_personalization_profile_persistence():
     new_engine = AssistantEngine()
     assert new_engine.user_profile.get("industry") == "Aerospace & Satellites"
     assert new_engine.user_profile.get("style") == "mathematical_in_depth"
+
+
+@pytest.mark.asyncio
+async def test_copilot_confirmation_protocol(mock_active_dataset):
+    """Verify that Copilot asks for confirmation before executing actions when requested."""
+    # 1. Enable confirmation protocol
+    toggle_res = await assistant_engine.process_query(
+        session_id="test_copilot_sess",
+        query="Please ask me before executing actions"
+    )
+    assert toggle_res.get("tool_executed") == "toggle_confirmation"
+    assert assistant_engine.user_profile.get("require_confirmation") is True
+
+    # 2. Trigger action command -> must return a proposal rather than executing immediately
+    prop_res = await assistant_engine.process_query(
+        session_id="test_copilot_sess",
+        query="Run autopilot on my dataset"
+    )
+    assert prop_res.get("status") == "proposal"
+    assert prop_res.get("action_card", {}).get("type") == "action_proposal"
+    assert "Confirmation Required" in prop_res.get("response")
+
+    # 3. Confirmed execution via execute_named_tool
+    proposal_card = prop_res.get("action_card", {})
+    exec_res = assistant_engine.execute_named_tool(
+        tool_name=proposal_card.get("tool_name"),
+        args=proposal_card.get("args", {})
+    )
+    assert exec_res.get("status") == "success"
+    assert "Auto-Pilot Completed" in exec_res.get("response")
+
+    # 4. Reset to autonomous mode
+    await assistant_engine.process_query(
+        session_id="test_copilot_sess",
+        query="Run automatically without asking"
+    )
+    assert assistant_engine.user_profile.get("require_confirmation") is False
+

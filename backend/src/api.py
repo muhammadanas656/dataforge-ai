@@ -1160,6 +1160,17 @@ def update_assistant_profile(payload: dict = Body(...)):
     return {"status": "success", "profile": assistant_engine.user_profile}
 
 
+@app.post("/api/assistant/execute-action")
+def execute_assistant_action(payload: dict = Body(...)):
+    session_id = payload.get("session_id", "default")
+    tool_name = payload.get("tool_name", "")
+    args = payload.get("args", {})
+    if not tool_name:
+        raise HTTPException(status_code=400, detail="Missing tool_name")
+    res = assistant_engine.execute_named_tool(tool_name, args, session_id)
+    return res
+
+
 @app.get("/api/assistant/token-stats")
 def get_assistant_token_stats():
     return {
