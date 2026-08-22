@@ -1148,6 +1148,26 @@ async def assistant_stream(payload: dict = Body(...)):
     )
 
 
+@app.get("/api/assistant/profile")
+def get_assistant_profile():
+    return assistant_engine.user_profile
+
+
+@app.post("/api/assistant/profile")
+def update_assistant_profile(payload: dict = Body(...)):
+    assistant_engine.user_profile.update(payload)
+    assistant_engine._save_user_profile()
+    return {"status": "success", "profile": assistant_engine.user_profile}
+
+
+@app.get("/api/assistant/token-stats")
+def get_assistant_token_stats():
+    return {
+        "total_tokens_saved": assistant_engine.total_tokens_saved,
+        "cached_queries_count": len(assistant_engine.semantic_cache)
+    }
+
+
 @app.post("/api/context/update")
 def api_update_context(payload: dict = Body(...)):
     session_id = payload.get("session_id", "default")

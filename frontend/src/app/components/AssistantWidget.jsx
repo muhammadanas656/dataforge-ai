@@ -1,8 +1,25 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Loader2, Sparkles, Compass, Database, Activity, Lightbulb } from "lucide-react";
-import { useContextTracker } from "../hooks/useContextTracker";
-import { getApiUrl, authFetch } from "../api";
+import { useState, useEffect, useRef } from "react";
+import {
+  Sparkles,
+  X,
+  Send,
+  Loader2,
+  Bot,
+  User,
+  Database,
+  Lightbulb,
+  Compass,
+  Activity,
+  Zap,
+  CheckCircle2,
+  Play,
+  ArrowRight,
+  Terminal
+} from "lucide-react";
+import Link from "next/link";
+import { authFetch } from "../api";
+import { IconAutopilot, IconWebRadar, IconCausalEDA, IconCodeExporter, IconTrizInvention } from "./AntigravityIcons";
 
 export default function AssistantWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,11 +27,9 @@ export default function AssistantWidget() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [contextData, setContextData] = useState(null);
+  const [tokenStats, setTokenStats] = useState({ total_tokens_saved: 0, cached_queries_count: 0 });
   const messagesEndRef = useRef(null);
-  const sessionId = useRef(`session_${typeof window !== "undefined" ? Math.random().toString(36).substring(7) : "init"}`);
-
-  // Activate context tracking
-  useContextTracker(sessionId.current);
+  const sessionId = useRef(`sess_${Math.random().toString(36).substring(2, 9)}`);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -29,6 +44,11 @@ export default function AssistantWidget() {
       authFetch(`/api/context/current?session_id=${sessionId.current}`)
         .then((r) => r.json())
         .then(setContextData)
+        .catch(() => {});
+
+      authFetch(`/api/assistant/token-stats`)
+        .then((r) => r.json())
+        .then(setTokenStats)
         .catch(() => {});
     }
   }, [isOpen]);
@@ -58,7 +78,7 @@ export default function AssistantWidget() {
         if (res.ok && res.body) {
           const reader = res.body.getReader();
           const decoder = new TextDecoder();
-          let assistantMsg = { role: "assistant", content: "" };
+          let assistantMsg = { role: "assistant", content: "", action_card: null, cached: false };
           setMessages((prev) => [...prev, assistantMsg]);
 
           while (true) {
@@ -79,6 +99,16 @@ export default function AssistantWidget() {
                     return updated;
                   });
                 } else if (data.type === "done") {
+                  if (data.action_card) assistantMsg.action_card = data.action_card;
+                  if (data.cached) assistantMsg.cached = true;
+                  if (data.total_tokens_saved) {
+                    setTokenStats((prev) => ({ ...prev, total_tokens_saved: data.total_tokens_saved }));
+                  }
+                  setMessages((prev) => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = { ...assistantMsg };
+                    return updated;
+                  });
                   setIsStreaming(false);
                 }
               } catch (e) {
@@ -89,10 +119,10 @@ export default function AssistantWidget() {
           streamSucceeded = true;
         }
       } catch (streamErr) {
-        console.warn("Stream attempt failed, falling back to direct query:", streamErr);
+        console.warn("Stream attempt fallback:", streamErr);
       }
 
-      // 2. If stream did not complete, fall back to standard JSON query endpoint
+      // 2. Direct JSON query endpoint fallback
       if (!streamSucceeded) {
         const fallbackRes = await authFetch(`/api/assistant/query`, {
           method: "POST",
@@ -105,11 +135,16 @@ export default function AssistantWidget() {
 
         if (fallbackRes.ok) {
           const fallbackData = await fallbackRes.json();
+          if (fallbackData.total_tokens_saved) {
+            setTokenStats((prev) => ({ ...prev, total_tokens_saved: fallbackData.total_tokens_saved }));
+          }
           setMessages((prev) => [
             ...prev,
             {
               role: "assistant",
-              content: fallbackData.response || "I am ready to assist you with DataForge AI modules, data cleaning, and causal EDA."
+              content: fallbackData.response || "I am ready to assist you.",
+              action_card: fallbackData.action_card,
+              cached: fallbackData.cached
             }
           ]);
         } else {
@@ -122,7 +157,7 @@ export default function AssistantWidget() {
         ...prev,
         {
           role: "assistant",
-          content: "The Copilot is ready. If you just reloaded, please send your question again and I will analyze your current dataset and active module."
+          content: "The Copilot is ready. Please send your question again and I will execute the action or analyze your data."
         }
       ]);
     } finally {
@@ -131,10 +166,12 @@ export default function AssistantWidget() {
   };
 
   const suggestedQuestions = [
-    { label: "Explain TRIZ Invention Studio", icon: Lightbulb },
-    { label: "What does this module do?", icon: Compass },
-    { label: "How does Causal Inference work?", icon: Activity },
-    { label: "Explain Governed Cleaning Studio", icon: Database }
+    { label: "🚀 Run Auto-Pilot on my dataset", action: true },
+    { label: "🎯 Scrape leads for AI startups", action: true },
+    { label: "📦 Export standalone Python code", action: true },
+    { label: "💡 Resolve TRIZ contradiction", action: true },
+    { label: "❓ What services does DataForge provide?", action: false },
+    { label: "📊 How does Causal DAG inference work?", action: false }
   ];
 
   return (
@@ -142,32 +179,37 @@ export default function AssistantWidget() {
       {/* Floating Launcher Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-4 py-3 shadow-xl transition-all hover:scale-105 font-medium text-xs border border-indigo-400/40"
-        title="Open DataForge Global Copilot"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white rounded-full px-4 py-3 shadow-2xl transition-all hover:scale-105 font-medium text-xs border border-indigo-400/40"
+        title="Open DataForge Autonomous Copilot"
       >
-        <Sparkles size={16} className="animate-pulse" />
-        <span>{isOpen ? "Close Copilot" : "DataForge Copilot"}</span>
+        <IconAutopilot size={18} className="animate-glow" />
+        <span>{isOpen ? "Close Copilot" : "Autonomous Copilot"}</span>
       </button>
 
       {/* Slide-out Floating Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-20 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-6rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className="fixed bottom-20 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] h-[580px] max-h-[calc(100vh-6rem)] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
           {/* Header */}
-          <div className="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60">
+          <div className="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-indigo-600 text-white">
-                <Sparkles size={15} />
+                <IconAutopilot size={16} />
               </div>
               <div>
                 <h3 className="font-bold text-xs text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                  DataForge Copilot
-                  <span className="text-[10px] font-normal px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono">
-                    Context-Aware
+                  Autonomous Copilot
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-cyan-100 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 font-mono">
+                    Action-Enabled
                   </span>
                 </h3>
-                <p className="text-[10px] text-slate-500 capitalize">
-                  Module: {contextData?.active_module || "Active"} · {contextData?.skill_level || "Pro"} Mode
-                </p>
+                <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                  <span>Module: {contextData?.active_module || "Overview"}</span>
+                  {tokenStats.total_tokens_saved > 0 && (
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-0.5">
+                      <Zap size={10} /> {tokenStats.total_tokens_saved} tokens saved
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <button
@@ -186,26 +228,31 @@ export default function AssistantWidget() {
                   <Sparkles size={20} />
                 </div>
                 <div className="space-y-1 px-4">
-                  <h4 className="font-semibold text-slate-800 dark:text-slate-200 text-xs">How can I assist you today?</h4>
+                  <h4 className="font-semibold text-slate-800 dark:text-slate-200 text-xs">Autonomous Agent & Copilot</h4>
                   <p className="text-[11px] text-slate-500 leading-relaxed">
-                    I have full cross-module context. Ask me about your data, statistical proofs, TRIZ inventions, or automated workflows.
+                    I can explain concepts, answer questions, or <strong>execute tools directly on your behalf</strong> (cleaning, scraping leads, Causal EDA, code exports).
                   </p>
                 </div>
 
                 <div className="grid gap-1.5 pt-2 px-2 text-left">
-                  {suggestedQuestions.map((q, i) => {
-                    const Icon = q.icon;
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => sendMessage(q.label)}
-                        className="flex items-center gap-2 w-full p-2 text-[11px] font-medium rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60 hover:border-indigo-400 dark:hover:border-indigo-600 text-slate-700 dark:text-slate-300 transition hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20"
-                      >
-                        <Icon size={13} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
-                        <span className="truncate">{q.label}</span>
-                      </button>
-                    );
-                  })}
+                  {suggestedQuestions.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => sendMessage(q.label)}
+                      className="flex items-center justify-between gap-2 w-full p-2 text-[11px] font-medium rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60 hover:border-cyan-400 dark:hover:border-cyan-500 text-slate-700 dark:text-slate-300 transition hover:bg-cyan-50/30 dark:hover:bg-cyan-950/20"
+                    >
+                      <span className="truncate">{q.label}</span>
+                      {q.action ? (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-100 dark:bg-cyan-900/50 text-cyan-700 dark:text-cyan-300 font-bold shrink-0">
+                          ACT
+                        </span>
+                      ) : (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0">
+                          ASK
+                        </span>
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -216,49 +263,76 @@ export default function AssistantWidget() {
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[11px] leading-relaxed shadow-xs ${
+                  className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-[11px] leading-relaxed shadow-xs ${
                     msg.role === "user"
-                      ? "bg-indigo-600 text-white rounded-br-xs"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-xs border border-slate-200/60 dark:border-slate-700/60"
+                      ? "bg-indigo-600 text-white rounded-br-none"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none border border-slate-200/80 dark:border-slate-700/80"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                  <div className="flex items-center gap-1.5 mb-1 opacity-70 text-[9px] font-semibold">
+                    {msg.role === "user" ? <User size={11} /> : <Bot size={11} />}
+                    <span>{msg.role === "user" ? "You" : "DataForge Copilot"}</span>
+                    {msg.cached && (
+                      <span className="ml-auto text-emerald-500 font-mono text-[9px]">⚡ Zero-Token Instant</span>
+                    )}
+                  </div>
+                  <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+
+                  {/* Action Execution Card */}
+                  {msg.action_card && (
+                    <div className="mt-2.5 rounded-xl border border-cyan-500/30 bg-cyan-950/20 p-2.5 text-[10px] space-y-1.5">
+                      <div className="flex items-center gap-1.5 font-bold text-cyan-400">
+                        <CheckCircle2 size={12} className="text-emerald-400" />
+                        <span>Action Completed Autonomously</span>
+                      </div>
+                      {msg.action_card.eda_link && (
+                        <div className="flex gap-2 pt-1">
+                          <Link href={msg.action_card.eda_link} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600 text-white font-bold hover:bg-cyan-500 transition">
+                            View Causal EDA <ArrowRight size={10} />
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
 
             {isStreaming && (
-              <div className="flex justify-start">
-                <div className="bg-slate-100 dark:bg-slate-800 rounded-2xl rounded-bl-xs px-3.5 py-2 border border-slate-200/60 dark:border-slate-700/60 flex items-center gap-1.5 text-[11px] text-slate-500">
-                  <Loader2 className="animate-spin text-indigo-600" size={13} />
-                  <span>Thinking...</span>
-                </div>
+              <div className="flex items-center gap-2 text-slate-400 text-xs py-1">
+                <Loader2 size={12} className="animate-spin text-cyan-500" />
+                <span className="text-[10px]">Copilot analyzing & executing...</span>
               </div>
             )}
 
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Footer Input */}
-          <div className="p-2.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 shadow-xs focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500">
+          {/* Input Bar */}
+          <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                sendMessage();
+              }}
+              className="flex items-center gap-2"
+            >
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                placeholder="Ask about data, TRIZ, or workflows..."
-                className="flex-1 bg-transparent text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none"
+                placeholder="Ask or command: 'Clean my data', 'Scrape leads'..."
+                className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 disabled={isStreaming}
               />
               <button
-                onClick={() => sendMessage()}
+                type="submit"
                 disabled={!input.trim() || isStreaming}
-                className="p-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-lg transition shrink-0"
+                className="p-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white disabled:opacity-40 transition shadow-sm"
               >
                 <Send size={13} />
               </button>
-            </div>
+            </form>
           </div>
         </div>
       )}

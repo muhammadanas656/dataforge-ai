@@ -1118,5 +1118,64 @@
       "source": "distilled_model"
     },
     "domain": "generic"
+  },
+  {
+    "name": "est_monthly_units",
+    "kind": "numeric",
+    "desc": {
+      "name": "est_monthly_units",
+      "semantic_type": "numeric",
+      "meaning": "Column 'est_monthly_units' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "source": "distilled_model",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "monthly_revenue_usd",
+    "kind": "numeric",
+    "desc": {
+      "name": "monthly_revenue_usd",
+      "semantic_type": "numeric",
+      "meaning": "Column 'monthly_revenue_usd' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9666666666666667,
+      "source": "distilled_model",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "monthly_net_profit_usd",
+    "kind": "numeric",
+    "desc": {
+      "name": "monthly_net_profit_usd",
+      "semantic_type": "numeric",
+      "meaning": "Column 'monthly_net_profit_usd' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9666666666666667,
+      "source": "distilled_model",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "rating_score",
+    "kind": "numeric",
+    "desc": {
+      "name": "rating_score",
+      "semantic_type": "numeric",
+      "meaning": "Column 'rating_score' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9666666666666667,
+      "source": "distilled_model"
+    },
+    "domain": "generic"
   }
 ]
