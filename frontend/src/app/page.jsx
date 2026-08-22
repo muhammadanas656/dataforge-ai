@@ -5,10 +5,11 @@ import { uploadFile } from "./api";
 import { useDataset } from "./components/DatasetContext";
 import { Card, StatTile, Badge, Button } from "./components/ui";
 import WebScraperModal from "./components/WebScraperModal";
-import { Upload, Loader2, Wrench, BarChart3, Database, FileText, PlusCircle, X, Globe, Sparkles, Play, CheckCircle2 } from "lucide-react";
+import { Upload, Loader2, Database, FileText, PlusCircle, X, Sparkles, Play, CheckCircle2 } from "lucide-react";
 import DatasetSummary from "./DatasetSummary";
 import { WorkflowStepGuide } from "./components/WorkflowStepGuide";
 import AntigravityHeroGraphic from "./components/AntigravityHeroGraphic";
+import { IconAutopilot, IconWebRadar, IconCausalEDA, IconIngest, IconProfiler, IconCleaningPlan } from "./components/AntigravityIcons";
 
 export default function Overview() {
   const { id, setId, refresh } = useDataset();
@@ -99,7 +100,7 @@ export default function Overview() {
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant={showScraper ? "primary" : "secondary"} onClick={() => setShowScraper((s) => !s)}>
-            <Globe size={13} /> {showScraper ? "Hide Web Scraper" : "Scrape from Web"}
+            <IconWebRadar size={14} /> {showScraper ? "Hide Web Scraper" : "Scrape from Web"}
           </Button>
 
           {id && (
@@ -119,12 +120,12 @@ export default function Overview() {
             <>
               <Link href="/cleaning">
                 <Button size="sm" variant="primary">
-                  <Wrench size={13} /> Cleaning Studio
+                  <IconCleaningPlan size={14} /> Cleaning Studio
                 </Button>
               </Link>
               <Link href="/eda">
                 <Button size="sm" variant="secondary">
-                  <BarChart3 size={13} /> EDA Report
+                  <IconCausalEDA size={14} /> Causal EDA
                 </Button>
               </Link>
             </>
@@ -231,11 +232,11 @@ export default function Overview() {
           )}
 
           {/* Autonomous Zero-Touch Auto-Pilot Card */}
-          <Card className="border-cyan-500/40 bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 p-5 shadow-lg">
+          <Card className="border-cyan-500/40 bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 p-5 shadow-2xl glass-panel spatial-hover">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="text-cyan-400" size={16} />
+                <div className="flex items-center gap-2.5">
+                  <IconAutopilot size={22} className="animate-glow" />
                   <h3 className="text-sm font-bold text-slate-100">Autonomous Zero-Touch Auto-Pilot</h3>
                   <Badge variant="cyan" size="xs">1-Click Pipeline</Badge>
                 </div>
@@ -247,7 +248,7 @@ export default function Overview() {
                 {status?.cleaned && (
                   <Link href="/eda">
                     <Button size="sm" variant="secondary">
-                      <BarChart3 size={13} /> View Causal EDA
+                      <IconCausalEDA size={14} /> View Causal EDA
                     </Button>
                   </Link>
                 )}

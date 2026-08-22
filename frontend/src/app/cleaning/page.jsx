@@ -9,13 +9,14 @@ import { WorkflowStepGuide } from "../components/WorkflowStepGuide";
 import { Database, Brain, Wrench, Shield, CheckCircle2, Loader2, ArrowRight, Terminal } from "lucide-react";
 import ReviewSection from "../ReviewSection";
 import PipelineCodeModal from "../components/PipelineCodeModal";
+import { IconProfiler, IconDictionary, IconCleaningPlan, IconGovernance, IconAutopilot, IconCodeExporter } from "../components/AntigravityIcons";
 
 const STAGES = [
-  { name: "Ingest & Profile", icon: Database, action: "upload" },
-  { name: "Understand", icon: Brain, action: "understand" },
-  { name: "Plan", icon: Wrench, action: "plan" },
-  { name: "Govern", icon: Shield, action: "govern" },
-  { name: "Review & Execute", icon: CheckCircle2, action: "none" },
+  { name: "Ingest & Profile", icon: IconProfiler, action: "upload" },
+  { name: "Understand", icon: IconDictionary, action: "understand" },
+  { name: "Plan & Critic", icon: IconCleaningPlan, action: "plan" },
+  { name: "Govern & Execute", icon: IconGovernance, action: "govern" },
+  { name: "Autonomous Verify", icon: IconAutopilot, action: "none" },
 ];
 
 const STAGE_INFO = {
@@ -87,7 +88,7 @@ export default function CleaningStudioPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="secondary" onClick={() => setShowCodeModal(true)}>
-            <Terminal size={13} /> Export Code
+            <IconCodeExporter size={14} /> Export Code
           </Button>
           <Link href="/cleaned">
             <Button size="sm" variant="primary">
