@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, Button, Badge, StatTile, PageHeader } from "../components/ui";
 import { getApiUrl, setCustomApiUrl, getUserCredentials, setUserCredentials } from "../api";
 import {
@@ -19,6 +19,10 @@ import {
   Copy,
   Check,
   RefreshCw,
+  Download,
+  Upload,
+  FileCode,
+  FileCheck,
 } from "lucide-react";
 
 const PROVIDER_PRESETS = {
@@ -69,6 +73,9 @@ export default function SettingsPage() {
   const [testingKey, setTestingKey] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [copiedEnv, setCopiedEnv] = useState(false);
+  const [importedEnvNotice, setImportedEnvNotice] = useState(null);
+
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const currentUrl = getApiUrl();
@@ -176,7 +183,7 @@ export default function SettingsPage() {
           "X-API-Key": settings.api_key || "",
           "X-API-Provider": settings.provider,
           "X-API-Model": settings.model,
-        }
+        },
       });
       const result = await r.json();
       setTier(result);
@@ -234,21 +241,132 @@ NEXT_PUBLIC_API_URL=${apiUrl}`;
     setTimeout(() => setCopiedEnv(false), 2000);
   };
 
+  // Export current configuration as a downloadable .env backup
+  const exportEnvFile = () => {
+    const content = `# ======================================================
+# DataForge AI — User Credentials & Calibration Backup
+# Generated on: ${new Date().toISOString()}
+#
+# 💡 KEEP THIS FILE SAFE!
+# If you ever clear your browser cache, reinstall, or change devices,
+# you can upload this .env file directly to restore full access.
+# ======================================================
+
+api_provider=${settings.provider}
+api_key=${settings.api_key || ""}
+api_model=${settings.model || "openai/gpt-oss-20b"}
+NEXT_PUBLIC_API_URL=${apiUrl}
+alert_threshold=${settings.alert_threshold}
+auto_l3=${settings.auto_l3}
+`;
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `dataforge_${settings.provider}_credentials.env`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Import configuration from uploaded .env file
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result;
+        if (typeof text !== "string") return;
+
+        const lines = text.split(/\r?\n/);
+        const parsed = {};
+
+        lines.forEach((line) => {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) return;
+          const match = trimmed.match(/^([^=]+)=(.*)$/);
+          if (match) {
+            const key = match[1].trim();
+            let value = match[2].trim();
+            if (
+              (value.startsWith('"') && value.endsWith('"')) ||
+              (value.startsWith("'") && value.endsWith("'"))
+            ) {
+              value = value.slice(1, -1);
+            }
+            parsed[key] = value;
+          }
+        });
+
+        const newProvider = parsed.api_provider || parsed.API_PROVIDER || settings.provider;
+        const newKey = parsed.api_key || parsed.API_KEY || parsed.GROQ_API_KEY || parsed.OPENAI_API_KEY || "";
+        const newModel = parsed.api_model || parsed.API_MODEL || settings.model;
+        const newApiUrl = parsed.NEXT_PUBLIC_API_URL || parsed.api_url || apiUrl;
+
+        // Update settings in memory
+        const updated = {
+          ...settings,
+          provider: newProvider,
+          api_key: newKey,
+          model: newModel,
+          has_key: Boolean(newKey),
+          api_key_masked: newKey ? (newKey.slice(0, 4) + "••••••••" + newKey.slice(-4)) : "",
+          alert_threshold: parsed.alert_threshold ? parseFloat(parsed.alert_threshold) : settings.alert_threshold,
+          auto_l3: parsed.auto_l3 !== undefined ? parsed.auto_l3 === "true" : settings.auto_l3,
+        };
+
+        setSettings(updated);
+
+        // Save to browser localStorage
+        setUserCredentials({
+          provider: newProvider,
+          api_key: newKey,
+          model: newModel,
+        });
+
+        if (newApiUrl && newApiUrl !== apiUrl) {
+          setCustomApiUrl(newApiUrl);
+          setApiUrl(newApiUrl);
+          setCustomUrlInput(newApiUrl);
+          checkHealth(newApiUrl);
+        }
+
+        setImportedEnvNotice(`Restored ${newProvider.toUpperCase()} credentials successfully!`);
+        setTimeout(() => setImportedEnvNotice(null), 4000);
+      } catch (err) {
+        console.error("Failed to parse .env file:", err);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <main className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6 animate-fade-in">
       <PageHeader
         title="System Settings & Connection Hub"
-        subtitle="Manage LLM provider credentials, cloud API endpoints, resilience thresholds, and Vercel deployment essentials."
+        subtitle="Manage LLM provider credentials, cloud API endpoints, resilience thresholds, and export/import calibration backups."
         breadcrumbs={[{ label: "Overview", href: "/" }, { label: "Settings" }]}
         actions={
-          <Button
-            onClick={save}
-            loading={saving}
-            icon={saved ? CheckCircle2 : Sparkles}
-            variant={saved ? "secondary" : "primary"}
-          >
-            {saved ? "Saved Successfully" : "Save All Settings"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={exportEnvFile}
+              variant="secondary"
+              icon={Download}
+            >
+              Export .env
+            </Button>
+            <Button
+              onClick={save}
+              loading={saving}
+              icon={saved ? CheckCircle2 : Sparkles}
+              variant={saved ? "secondary" : "primary"}
+            >
+              {saved ? "Saved Successfully" : "Save All Settings"}
+            </Button>
+          </div>
         }
       />
 
@@ -284,10 +402,21 @@ NEXT_PUBLIC_API_URL=${apiUrl}`;
         />
       </div>
 
+      {/* Import / Export Notification Banner */}
+      {importedEnvNotice && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 flex items-center justify-between gap-3 animate-fade-in shadow-soft">
+          <div className="flex items-center gap-2.5">
+            <FileCheck size={20} className="text-emerald-600 dark:text-emerald-400" />
+            <span className="text-xs font-bold">{importedEnvNotice}</span>
+          </div>
+          <Badge tone="good">Active & Ready</Badge>
+        </div>
+      )}
+
       {/* Section 1: AI Provider & API Key Credentials */}
       <Card
         title="LLM Intelligence & Credentials"
-        info="Configure your AI model provider and credentials. Keys are saved locally and used for distillation, semantic typing, and future research engines."
+        info="Configure your AI model provider and credentials. Keys are saved locally in your browser and used for distillation, semantic typing, and future research engines."
         pad={true}
       >
         <div className="space-y-4">
@@ -365,7 +494,7 @@ NEXT_PUBLIC_API_URL=${apiUrl}`;
               </button>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-              Your key is protected locally in <code className="text-indigo-600 dark:text-indigo-400 font-mono">.env</code> and <code className="text-indigo-600 dark:text-indigo-400 font-mono">data/settings.json</code>.
+              Your key is protected locally in your browser and used only for your requests.
             </p>
           </div>
 
@@ -410,7 +539,65 @@ NEXT_PUBLIC_API_URL=${apiUrl}`;
         </div>
       </Card>
 
-      {/* Section 2: Frontend & Backend Cloud Deployment (Vercel / GitHub) */}
+      {/* Section 2: One-Click .env Backup & Quick Calibration */}
+      <Card
+        title="Credentials Backup & Quick Calibration (.env)"
+        info="Save your configured API credentials to a personal .env file. If you ever clear your browser cache, switch computers, or open a private window, simply upload your .env file to instantly calibrate the tool."
+        pad={true}
+      >
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl border border-slate-200/80 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <FileCode size={16} className="text-indigo-600 dark:text-indigo-400" />
+                <span>Download Your Personal Calibration File</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
+                Exports your active provider, API key, model choice, and backend URL into a formatted <code className="font-mono text-indigo-600 dark:text-indigo-400">.env</code> file. Store this file safely on your machine.
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={exportEnvFile}
+              icon={Download}
+            >
+              Export as .env File
+            </Button>
+          </div>
+
+          <div className="p-4 rounded-xl border border-slate-200/80 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <Upload size={16} className="text-emerald-600 dark:text-emerald-400" />
+                <span>Restore from .env Backup</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
+                Had your browser data erased? Pick your saved <code className="font-mono text-emerald-600 dark:text-emerald-400">.env</code> file to auto-fill all keys and restore calibration in under a second.
+              </p>
+            </div>
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".env,text/plain"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={() => fileInputRef.current?.click()}
+                icon={Upload}
+              >
+                Upload & Calibrate
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Section 3: Frontend & Backend Cloud Deployment (Vercel / GitHub) */}
       <Card
         title="Deployment & Backend Connection (Vercel / Cloud)"
         info="Connect your Vercel frontend build to your hosted FastAPI backend server (Render, Railway, Fly.io, AWS, etc.)."
@@ -460,7 +647,7 @@ NEXT_PUBLIC_API_URL=${apiUrl}`;
             <div className="flex items-center justify-between gap-2 mb-2">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
                 <Globe size={14} className="text-indigo-600 dark:text-indigo-400" />
-                <span>Vercel / GitHub Production Environment Variables</span>
+                <span>Vercel Production Environment Variables</span>
               </div>
               <button
                 onClick={copyEnvSnippet}
@@ -474,16 +661,14 @@ NEXT_PUBLIC_API_URL=${apiUrl}`;
 {`# Frontend (Vercel Project Settings -> Environment Variables)
 NEXT_PUBLIC_API_URL=${apiUrl}
 
-# Backend (.env or Cloud Platform Config)
-api_provider=${settings.provider}
-api_key=${settings.api_key_masked ? "<YOUR_SECRET_KEY>" : (settings.api_key || "<YOUR_SECRET_KEY>")}
-api_model=${settings.model}`}
+# Notice: Because of BYOK isolation, each visitor inputs their own keys.
+# No secret API keys need to be shared in Vercel!`}
             </pre>
           </div>
         </div>
       </Card>
 
-      {/* Section 3: Model Resilience & Autonomous Engine */}
+      {/* Section 4: Model Resilience & Autonomous Engine */}
       <Card
         title="Model Resilience & Autonomy Engine"
         info="Control automatic fallback strategies, probe model capabilities, and configure cost alert limits."
