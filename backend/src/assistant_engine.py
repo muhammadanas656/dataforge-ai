@@ -29,20 +29,58 @@ class AssistantEngine:
             return {"type": "general", "rag_collection": "all", "style": "conversational"}
     
     def _build_system_prompt(self, ctx_dict: Dict[str, Any], intent: Dict[str, Any], rag_results: List[Dict[str, Any]]) -> str:
-        """Construct a high-context, skill-adaptive system prompt."""
+        """Construct a high-context, skill-adaptive system prompt with live dataset awareness."""
         active_module = ctx_dict.get("active_module", "overview")
         dataset_id = ctx_dict.get("active_dataset_id", "none")
         skill_level = ctx_dict.get("skill_level", "intermediate")
         recent_errors = ctx_dict.get("recent_errors", [])
         
         prompt = (
-            f"You are DataForge Copilot, the intelligent pairing assistant for DataForge AI.\n"
+            f"You are DataForge Copilot, the intelligent autonomous AI assistant and data scientist for DataForge AI.\n"
+            f"You can assist with ANY feature in the system: Data Cleaning (CP1-CP4), Governance, Exploratory Data Analysis (EDA), "
+            f"Causal DAGs, Statistical Hypotheses, Niche Market Research, Autonomous Web Crawling, Competitor Radar, Scenario Planning, and TRIZ Invention.\n\n"
             f"CURRENT SESSION CONTEXT:\n"
             f"- Active Module: {active_module}\n"
             f"- Active Dataset ID: {dataset_id}\n"
             f"- User Skill Level: {skill_level}\n\n"
         )
         
+        # Inject Active Dataset Summary if available
+        if dataset_id and dataset_id != "none":
+            import os
+            prof_path = f"reports/profile_{dataset_id}.json"
+            eda_path = f"reports/eda_{dataset_id}.json"
+            exec_path = f"reports/execution_{dataset_id}.json"
+            
+            prompt += f"ACTIVE DATASET CONTEXT (ID: {dataset_id}):\n"
+            if os.path.exists(prof_path):
+                try:
+                    with open(prof_path, "r", encoding="utf-8") as f:
+                        pdata = json.load(f)
+                    cols = [c.get("name", "") for c in pdata.get("columns", [])]
+                    prompt += f"- Dimensions: {pdata.get('shape', [0,0])[0]} rows x {len(cols)} columns\n"
+                    prompt += f"- Columns: {', '.join(cols[:15])}\n"
+                except Exception:
+                    pass
+            if os.path.exists(exec_path):
+                try:
+                    with open(exec_path, "r", encoding="utf-8") as f:
+                        edata = json.load(f)
+                    prompt += f"- Cleaning Quality: {edata.get('before_quality',0)}% -> {edata.get('after_quality',0)}% (+{edata.get('quality_delta',0)}%)\n"
+                    prompt += f"- Rows After Cleaning: {edata.get('after_rows', 0)}\n"
+                except Exception:
+                    pass
+            if os.path.exists(eda_path):
+                try:
+                    with open(eda_path, "r", encoding="utf-8") as f:
+                        edarep = json.load(f)
+                    causal = edarep.get("causal_dag", {})
+                    if causal and causal.get("primary_insight"):
+                        prompt += f"- Causal Driver: {causal.get('primary_insight')}\n"
+                except Exception:
+                    pass
+            prompt += "\n"
+
         if intent.get("include_errors") and recent_errors:
             prompt += "RECENT SYSTEM ERRORS:\n"
             for err in recent_errors[-3:]:
@@ -50,7 +88,7 @@ class AssistantEngine:
             prompt += "\n"
         
         if rag_results:
-            prompt += "RELEVANT SYSTEM DOCUMENTATION & METADATA:\n"
+            prompt += "RELEVANT SYSTEM DOCUMENTATION & CAPABILITIES:\n"
             for r in rag_results[:3]:
                 prompt += f"• [{r.get('title', 'Doc')}] {r.get('content', '')}\n"
             prompt += "\n"
@@ -58,7 +96,8 @@ class AssistantEngine:
         prompt += (
             f"RESPONSE GUIDELINES:\n"
             f"- Style: {intent.get('style', 'conversational')}.\n"
-            f"- Keep explanations clear, practical, and highly relevant to DataForge's capabilities.\n"
+            f"- Answer any questions about the dataset, statistical distributions, causal drivers, or features thoroughly.\n"
+            f"- Keep explanations clear, grounded in data, and practical.\n"
             f"- If recommending next steps, mention the specific UI button or page (e.g. 'Navigate to Visual EDA' or 'Open Cleaning Studio')."
         )
         return prompt
