@@ -1075,5 +1075,48 @@
       "source": "distilled_model"
     },
     "domain": "generic"
+  },
+  {
+    "name": "Extreme_Sensor_Value",
+    "kind": "numeric",
+    "desc": {
+      "name": "Extreme_Sensor_Value",
+      "semantic_type": "numeric",
+      "meaning": "Column 'Extreme_Sensor_Value' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9666666666666667,
+      "source": "distilled_model"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Annual_Spend_USD",
+    "kind": "numeric",
+    "desc": {
+      "name": "Annual_Spend_USD",
+      "semantic_type": "numeric",
+      "meaning": "Column 'Annual_Spend_USD' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.9666666666666667,
+      "source": "distilled_model",
+      "tier": "T3_llm"
+    },
+    "domain": "generic"
+  },
+  {
+    "name": "Customer_Health_Score",
+    "kind": "numeric",
+    "desc": {
+      "name": "Customer_Health_Score",
+      "semantic_type": "numeric",
+      "meaning": "Column 'Customer_Health_Score' (distilled_model inference)",
+      "pii": false,
+      "suggested_use": "measure",
+      "confidence": 0.7,
+      "source": "distilled_model"
+    },
+    "domain": "generic"
   }
 ]
