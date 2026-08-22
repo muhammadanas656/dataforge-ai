@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Loader2, Sparkles, Compass, Database, Activity, Lightbulb } from "lucide-react";
 import { useContextTracker } from "../hooks/useContextTracker";
+import { getApiUrl, authFetch } from "../api";
 
 export default function AssistantWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +26,7 @@ export default function AssistantWidget() {
 
   useEffect(() => {
     if (isOpen) {
-      fetch(`http://localhost:8000/api/context/current?session_id=${sessionId.current}`)
+      authFetch(`/api/context/current?session_id=${sessionId.current}`)
         .then((r) => r.json())
         .then(setContextData)
         .catch(() => {});
@@ -42,7 +43,7 @@ export default function AssistantWidget() {
     setIsStreaming(true);
 
     try {
-      const res = await fetch("http://localhost:8000/api/assistant/stream", {
+      const res = await authFetch(`/api/assistant/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

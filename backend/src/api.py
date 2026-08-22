@@ -12,11 +12,11 @@ from src.token_tracker import tracker
 
 app = FastAPI(title="DataForge AI", version="0.9")
 
-# Enable CORS so Next.js (port 3000) can talk to FastAPI (port 8000)
-origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+# Enable CORS for all local and deployed frontend origins (Vercel, Localhost, Preview domains)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in origins if o.strip()] or ["*"],
+    allow_origins=["*"],
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -764,6 +764,15 @@ def inject_niche_dataset(payload: dict = Body(default_factory=dict)):
         "quality_issues_injected": res.get("quality_issues_injected", True),
         **res
     }
+
+
+@app.post("/api/research/crawl-niche")
+def crawl_niche_websites(payload: dict = Body(default_factory=dict)):
+    niche = payload.get("niche", "Market Opportunity")
+    custom_urls = payload.get("custom_urls", [])
+    max_pages = min(max(1, payload.get("max_pages", 5)), 20)
+    res = scraper.crawl_and_structure_niche(niche=niche, target_urls=custom_urls, max_pages=max_pages)
+    return res
 
 
 @app.post("/api/research/blueprint")

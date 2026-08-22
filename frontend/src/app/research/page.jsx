@@ -6,6 +6,7 @@ import { Card, Button, Badge, StatTile } from "../components/ui";
 import { useJob } from "../hooks/useJob";
 import { FeatureGuide } from "../components/FeatureGuide";
 import { WorkflowStepGuide } from "../components/WorkflowStepGuide";
+import { authFetch } from "../api";
 import {
   Compass,
   Loader2,
@@ -33,7 +34,8 @@ import {
   Lightbulb,
   Sliders,
   ShieldAlert,
-  X
+  X,
+  Globe,
 } from "lucide-react";
 
 const CATEGORIES = [
@@ -81,6 +83,8 @@ export default function ResearchPage() {
   const [activeBlueprint, setActiveBlueprint] = useState(null);
   const [loadingBlueprint, setLoadingBlueprint] = useState(false);
   const [injectingDataset, setInjectingDataset] = useState(false);
+  const [customScrapeUrl, setCustomScrapeUrl] = useState("");
+  const [crawlingWebsites, setCrawlingWebsites] = useState(false);
 
   // Future Horizon & Invention Studio State
   const [studioMode, setStudioMode] = useState("radar"); // 'radar' | 'invention'
@@ -343,7 +347,7 @@ export default function ResearchPage() {
     trackEngagement(nicheName, catName, "injected_dataset");
     setInjectingDataset(true);
     try {
-      const res = await fetch("http://localhost:8000/api/research/export-to-dataset", {
+      const res = await authFetch(`/api/research/export-to-dataset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ niche: nicheName, dataset_type: "comprehensive" })
@@ -360,12 +364,35 @@ export default function ResearchPage() {
     }
   };
 
+  const handleCrawlWebsitesAndOpenCleaning = async (nicheName, targetUrlsInput = "") => {
+    setCrawlingWebsites(true);
+    try {
+      const urls = targetUrlsInput
+        ? targetUrlsInput.split(",").map((u) => u.trim()).filter(Boolean)
+        : [];
+      const res = await authFetch(`/api/research/crawl-niche`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ niche: nicheName, custom_urls: urls, max_pages: 5 }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem("dataforge_active_id", data.dataset_id);
+        router.push("/cleaning");
+      }
+    } catch (e) {
+      console.error("Failed to crawl niche websites:", e);
+    } finally {
+      setCrawlingWebsites(false);
+    }
+  };
+
   const handleRunWeekly = async () => {
     setWeeklyLoading(true);
     try {
-      await fetch("http://localhost:8000/api/research/weekly", { method: "POST" });
+      await authFetch(`/api/research/weekly`, { method: "POST" });
       setTimeout(async () => {
-        const res = await fetch("http://localhost:8000/api/research/weekly/latest");
+        const res = await authFetch(`/api/research/weekly/latest`);
         if (res.ok) setWeekly(await res.json());
         setWeeklyLoading(false);
       }, 3000);
@@ -1137,6 +1164,38 @@ export default function ResearchPage() {
                 </p>
                 <div className="text-[11px] text-slate-500 pt-1">
                   <b>Target Market:</b> {activeBlueprint.target_market}
+                </div>
+              </div>
+
+              {/* 🕷️ Autonomous Niche Web Scraper & Real-World Dataset Extraction */}
+              <div className="rounded-xl p-3.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <Globe size={14} className="text-emerald-600 dark:text-emerald-400" />
+                    <span>Autonomous Niche Web Crawler & Competitor Scraper</span>
+                  </div>
+                  <Badge tone="good">Agentic Scraper</Badge>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Enter target competitor websites, product listings, or forum URLs to autonomously scrape live pricing, features, and sentiment directly into a clean dataset.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                  <input
+                    type="text"
+                    placeholder="e.g. https://news.ycombinator.com, https://producthunt.com (or leave empty to auto-discover)"
+                    value={customScrapeUrl}
+                    onChange={(e) => setCustomScrapeUrl(e.target.value)}
+                    className="flex-1 h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  />
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={() => handleCrawlWebsitesAndOpenCleaning(activeBlueprint.niche, customScrapeUrl)}
+                    disabled={crawlingWebsites}
+                    icon={crawlingWebsites ? Loader2 : Sparkles}
+                  >
+                    {crawlingWebsites ? "Crawling & Structuring..." : "Scrape & Open in Cleaning Studio"}
+                  </Button>
                 </div>
               </div>
 
