@@ -690,7 +690,8 @@ def top_n(df, cat, num, chart_type=None):
     }
 
 
-def run_full_eda(dataset_id: str, force_refresh: bool = False) -> dict:
+def run_full_eda(dataset_id: str, force_refresh: bool = False, force: bool = False, **kwargs) -> dict:
+    force_refresh = force_refresh or force
     eda_cache_path = f"reports/eda_{dataset_id}.json"
     cleaned_path = f"data/canonical/{dataset_id}_cleaned.csv"
 
@@ -917,4 +918,17 @@ def generate_statistical_hypotheses(df: pd.DataFrame) -> list:
             })
 
     return hypotheses
+
+
+def get_causal_graph(dataset_id: str) -> dict:
+    """Convenience helper to compute or return causal DAG for dataset."""
+    df = load_dataset(dataset_id)
+    return compute_causal_dag(df)
+
+
+def get_hypotheses(dataset_id: str) -> list:
+    """Convenience helper to test and return automated statistical hypotheses."""
+    df = load_dataset(dataset_id)
+    return generate_statistical_hypotheses(df)
+
 

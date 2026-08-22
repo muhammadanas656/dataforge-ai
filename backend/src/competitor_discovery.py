@@ -4,13 +4,14 @@ import json
 import time
 import re
 from urllib.parse import urlparse, quote_plus
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import httpx
 from bs4 import BeautifulSoup
 from src.utils import logger
 from src.llm import tracked_chat
 from src.utils import repair_and_load_json
+from src.token_tracker import tracker
 
 COMPETITOR_CACHE_DIR = "data/competitor_cache"
 COMPETITOR_CACHE_TTL = 3600 * 48  # 48 hours
@@ -18,15 +19,17 @@ COMPETITOR_CACHE_TTL = 3600 * 48  # 48 hours
 class CompetitorDiscovery:
     """Discovers competitors via search and extracts structured data."""
     
-    def __init__(self):
-        os.makedirs(COMPETITOR_CACHE_DIR, exist_ok=True)
-        self.COMPETITOR_CACHE_TTL = COMPETITOR_CACHE_TTL
+    def __init__(self, cache_ttl_hours: int = 48, cache_dir: str = "data/competitor_cache"):
+        os.makedirs(cache_dir, exist_ok=True)
+        self.cache_dir = cache_dir
+        self.COMPETITOR_CACHE_TTL = cache_ttl_hours * 3600
+        self.cache_ttl = timedelta(hours=cache_ttl_hours)
         self.http_client = httpx.Client(timeout=10, follow_redirects=True)
     
     def _cache_path(self, niche: str) -> str:
         """Generate cache file path for a niche."""
         safe_name = re.sub(r'[^a-z0-9]', '_', niche.lower())[:50]
-        return os.path.join(COMPETITOR_CACHE_DIR, f"{safe_name}.json")
+        return os.path.join(self.cache_dir, f"{safe_name}.json")
     
     def _is_cache_fresh(self, cache_path: str) -> bool:
         """Check if cached data is still fresh."""
@@ -94,15 +97,6 @@ class CompetitorDiscovery:
                 logger.warning(f"[competitor_discovery] Failed to save cache: {e}")
         
         return validated_competitors
-    
-from src.token_tracker import tracker
-
-class CompetitorDiscovery:
-    def __init__(self, cache_ttl_hours: int = 48, cache_dir: str = "cache/competitors"):
-        self.cache_ttl = timedelta(hours=cache_ttl_hours)
-        self.cache_dir = cache_dir
-        self.http_client = httpx.Client(timeout=10.0, follow_redirects=True)
-        os.makedirs(cache_dir, exist_ok=True)
     
     def _suggest_competitors_via_llm(self, niche: str, run_id: str = None) -> List[Dict]:
         """Use LLM to suggest likely competitors for a niche."""
@@ -244,4 +238,19 @@ Return as a JSON array of objects with keys: "name", "website", "description", "
             'sentiment': {'positive': pos, 'negative': neg, 'neutral': neu}
         }
 
+    def analyze_niche_competitors(self, niche: str, category: str = "AI & SaaS") -> dict:
+        """High-level analysis of competitor landscape, pricing, and threat quadrants."""
+        competitors = self.discover_competitors(niche)
+        return {
+            "niche": niche,
+            "category": category,
+            "competitors": competitors,
+            "threat_quadrant": {
+                "market_leaders": [c["name"] for c in competitors[:2]],
+                "challengers": [c["name"] for c in competitors[2:4]],
+                "niche_players": [c["name"] for c in competitors[4:]]
+            }
+        }
+
 competitor_discovery = CompetitorDiscovery()
+competitor_radar = competitor_discovery

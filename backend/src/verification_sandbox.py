@@ -203,7 +203,11 @@ def verify_step(df_before, df_after, action, run_id="unknown"):
     if not overall_passed:
         logger.warning(f"[sandbox] Verification failed for {act_str}. Attempting L1/L2 auto-remediation.")
         rem_res = remediate(run_id, df_before, {"action": act_str, "reason": row_check["reason"]})
-        report["remediation"] = rem_res
+        if isinstance(rem_res, tuple) and len(rem_res) == 2:
+            rem_df, rem_meta = rem_res
+            report["remediation"] = rem_meta
+        else:
+            report["remediation"] = rem_res
 
     return df_after, report
 

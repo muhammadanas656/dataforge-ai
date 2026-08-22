@@ -417,7 +417,22 @@ def run_execution(dataset_id, approved_ids, governance, preserve=None):
     
     os.makedirs("reports", exist_ok=True)
     with open(f"reports/execution_{dataset_id}.json", "w", encoding="utf-8") as f:
-        json.dump(exec_summary, f, indent=2, ensure_ascii=False)
+        json.dump(exec_summary, f, indent=2, ensure_ascii=False, default=str)
         
     logger.info(f"Execution finished for {dataset_id}: Quality {before_qb['overall']}% -> {after_qb['overall']}%, Rows {before_rows} -> {len(df)}")
     return exec_summary
+
+
+def execute_plan(dataset_id, approved_ids=None, preserve=None):
+    """Convenience entrypoint that loads governance report and executes plan."""
+    gov_path = f"reports/governance_{dataset_id}.json"
+    if not os.path.exists(gov_path):
+        from src import governance as gov_mod
+        plan_path = f"reports/cleaning_plan_{dataset_id}.json"
+        gov = gov_mod.run_governance(plan_path)
+    else:
+        gov = json.load(open(gov_path, encoding="utf-8"))
+    if approved_ids is None:
+        approved_ids = [s["id"] for s in gov.get("steps", [])]
+    return run_execution(dataset_id, approved_ids, gov, preserve)
+

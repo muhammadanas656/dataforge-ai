@@ -56,11 +56,16 @@ def validate_addition(add, profile):
     return True, "ok"
 
 def run_governance(plan_path):
+    if not os.path.exists(plan_path):
+        if os.path.exists(f"reports/cleaning_plan_{plan_path}.json"):
+            plan_path = f"reports/cleaning_plan_{plan_path}.json"
+        elif os.path.exists(f"reports/plan_{plan_path}.json"):
+            plan_path = f"reports/plan_{plan_path}.json"
     with open(plan_path, encoding="utf-8") as f:
         plan = json.load(f)
     dataset_id = plan["dataset_id"]
-    dict_path = plan_path.replace("plan_", "dictionary_")
-    profile_path = plan_path.replace("plan_", "profile_")
+    dict_path = f"reports/dictionary_{dataset_id}.json"
+    profile_path = f"reports/profile_{dataset_id}.json"
     dictionary = json.load(open(dict_path, encoding="utf-8"))["dictionary"]
     profile = json.load(open(profile_path, encoding="utf-8"))
 

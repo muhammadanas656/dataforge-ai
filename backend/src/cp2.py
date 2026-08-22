@@ -75,9 +75,14 @@ def describe_column(run_id, col, domain="generic"):
     return res
 
 def run_cp2(profile_path):
+    if not os.path.exists(profile_path):
+        if os.path.exists(f"reports/profile_{profile_path}.json"):
+            profile_path = f"reports/profile_{profile_path}.json"
+        elif os.path.exists(f"reports/cp1_{profile_path}.json"):
+            profile_path = f"reports/cp1_{profile_path}.json"
     with open(profile_path, encoding="utf-8") as f:
         profile = json.load(f)
-    dataset_id = profile["dataset_id"]
+    dataset_id = profile.get("dataset_id", os.path.basename(profile_path).split(".")[0].replace("profile_", "").replace("cp1_", ""))
 
     # Read CP1 domain
     cp1_path = profile_path.replace("profile_", "cp1_")

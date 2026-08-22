@@ -23,11 +23,18 @@ Rules:
 - Prefer reversible/low-risk steps. Reject steps whose impact is disproportionate."""
 
 def run_cp3(profile_path):
+    if not os.path.exists(profile_path):
+        if os.path.exists(f"reports/profile_{profile_path}.json"):
+            profile_path = f"reports/profile_{profile_path}.json"
+        elif os.path.exists(f"reports/cp1_{profile_path}.json"):
+            profile_path = f"reports/cp1_{profile_path}.json"
     with open(profile_path, encoding="utf-8") as f:
         profile = json.load(f)
-    dataset_id = profile["dataset_id"]
+    dataset_id = profile.get("dataset_id", os.path.basename(profile_path).split(".")[0].replace("profile_", "").replace("cp1_", ""))
     
-    dict_path = profile_path.replace("profile_", "dictionary_")
+    dict_path = f"reports/dictionary_{dataset_id}.json"
+    if not os.path.exists(dict_path):
+        dict_path = profile_path.replace("profile_", "dictionary_")
     dict_obj = json.load(open(dict_path, encoding="utf-8"))
     dictionary = dict_obj["dictionary"]
     domain = dict_obj.get("domain", "generic")
@@ -108,6 +115,8 @@ def run_cp3(profile_path):
     os.makedirs("reports", exist_ok=True)
     path = f"reports/plan_{dataset_id}.json"
     with open(path, "w", encoding="utf-8") as f:
+        json.dump(out, f, indent=2, ensure_ascii=False)
+    with open(f"reports/cleaning_plan_{dataset_id}.json", "w", encoding="utf-8") as f:
         json.dump(out, f, indent=2, ensure_ascii=False)
 
     print(f"\n=== CP3: CLEANING PLAN ({len(steps)} steps) ===")
