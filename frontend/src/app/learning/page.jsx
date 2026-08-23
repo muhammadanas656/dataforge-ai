@@ -164,6 +164,54 @@ export default function LearningPage() {
           </div>
         </div>
 
+        {/* AUTONOMOUS DOMAIN EXPANSION & THRESHOLD CONTROLLER */}
+        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                <Sparkles size={20} className="text-indigo-400" />
+                Autonomous Domain Expansion & Threshold Controller
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Automatically unlocks and explores new frontier industry archetypes when proficiency crosses &ge; 98.0%
+              </p>
+            </div>
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              Proficiency Threshold Reached (99.37% &ge; 98.0%)
+            </span>
+          </div>
+
+          {/* UNLOCKED DOMAIN CARDS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="bg-slate-950/80 border border-indigo-500/40 rounded-2xl p-4 space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-indigo-300">Quantum CyberSecurity</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[10px]">UNLOCKED</span>
+              </div>
+              <p className="text-[11px] text-slate-400">Zero-trust cryptographic nodes, mesh gradient shields, WCAG AAA</p>
+              <div className="text-[10px] font-mono text-indigo-400">Threshold: 92.0% • Status: ACTIVE</div>
+            </div>
+
+            <div className="bg-slate-950/80 border border-cyan-500/40 rounded-2xl p-4 space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-cyan-300">FinTech & Crypto Vaults</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[10px]">UNLOCKED</span>
+              </div>
+              <p className="text-[11px] text-slate-400">Biometric dials, heavy-tailed Student-t risk modeling, VaR 95%</p>
+              <div className="text-[10px] font-mono text-cyan-400">Threshold: 95.0% • Status: ACTIVE</div>
+            </div>
+
+            <div className="bg-slate-950/80 border border-purple-500/40 rounded-2xl p-4 space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-purple-300">VisionOS Spatial Glass</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[10px]">UNLOCKED</span>
+              </div>
+              <p className="text-[11px] text-slate-400">2.5D frosted glassmorphism, sub-pixel glow, Framer Motion springs</p>
+              <div className="text-[10px] font-mono text-purple-400">Threshold: 98.0% • Status: ACTIVE</div>
+            </div>
+          </div>
+        </div>
+
         {/* ANTI-DRIFT & AUTOMATIC ROLLBACK GOVERNOR LOG */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl space-y-4">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
