@@ -278,128 +278,263 @@ class StudioTelemetryHub:
         return f"#{int((r+m)*255):02x}{int((g+m)*255):02x}{int((b+m)*255):02x}"
 
     def _generate_vector_svg(self, cycle: int = 1) -> str:
-        """Render truly generative, non-repeating parametric vector artwork."""
+        """Render ultra-high quality, multi-layered Masterpiece vector artwork."""
+        from src.universal_geometry_primitives import geometry_primitives
+
         # 1. Continuous HSL Color Orbit using prime angular step 37.0°
         h_prime = (cycle * 37.0) % 360.0
         c_acc = self._hsl_to_hex(h_prime, 90.0, 60.0)
         c_sec = self._hsl_to_hex((h_prime + 120.0) % 360.0, 85.0, 55.0)
         c_tri = self._hsl_to_hex((h_prime + 240.0) % 360.0, 95.0, 65.0)
 
-        # 2. Dynamic Fourier Wave Parameters
-        wave_shift = (cycle * 13) % 200
-        ridge_y = 200 + int(30.0 * math.sin(cycle * 0.15))
-        sun_x = 400 + int(120.0 * math.sin(cycle * 0.08))
-        sun_y = 150 + int(40.0 * math.cos(cycle * 0.12))
-        sun_r = 75 + int(25.0 * math.sin(cycle * 0.2))
+        # 2. Masterpiece Filter and Lighting Definitions
+        defs = geometry_primitives.default_masterpiece_defs(theme_color=c_sec, accent_color=c_acc)
 
-        # 3. Dynamic Archetype Switch across 6 Parametric Typologies
+        # 3. Dynamic Fourier Wave Parameters
+        sun_x = 400 + int(100.0 * math.sin(cycle * 0.08))
+        sun_y = 160 + int(30.0 * math.cos(cycle * 0.12))
+        h_ridge = 220 + int((cycle * 7) % 35)
+
         mode = cycle % 6
         if mode == 0:
-            # Aerospace Delta Jet with dynamic Mach angle
-            wing_span = 180 + int(40.0 * math.sin(cycle * 0.3))
-            sweep_y = -60 - int(30.0 * math.cos(cycle * 0.3))
-            center_art = f"""<g transform="translate(400, 240) scale({1.1 + 0.2*math.sin(cycle*0.1):.2f})" filter="url(#glow)">
-              <path d="M 0,-80 L {wing_span},{sweep_y} L 40,20 L 0,0 L -40,20 L -{wing_span},{sweep_y} Z" fill="url(#mesh_glow)"/>
-              <line x1="0" y1="-80" x2="0" y2="40" stroke="#ffffff" stroke-width="2.5"/>
-              <circle cx="0" cy="40" r="8" fill="{c_acc}" filter="url(#glow)"/>
-            </g>"""
+            # 1. Supersonic Aerospace Delta Jet with Afterburners over Mountain Glacier
+            scene = f"""{defs}
+  <rect width="800" height="600" fill="url(#sky_ambient)"/>
+  {geometry_primitives.sun_aurora(sun_x, sun_y, 90, c_acc)}
+  {geometry_primitives.mountain_ridge(800, 420, h_ridge, 6, "#0f172a", "#f8fafc")}
+  {geometry_primitives.mountain_ridge(800, 490, h_ridge - 50, 7, "#020617", c_acc)}
+  <!-- High-Detail Supersonic Fighter Jet -->
+  <g transform="translate(400, 240) scale({1.1 + 0.15*math.sin(cycle*0.1):.2f})" filter="url(#glow)">
+    <!-- Shockwave Trails -->
+    <line x1="-190" y1="-30" x2="-260" y2="40" stroke="{c_acc}" stroke-width="2" stroke-dasharray="6,4" opacity="0.7"/>
+    <line x1="190" y1="-30" x2="260" y2="40" stroke="{c_acc}" stroke-width="2" stroke-dasharray="6,4" opacity="0.7"/>
+    <!-- Delta Wings -->
+    <path d="M 0,-95 L 180,-30 L 40,25 L 0,10 L -40,25 L -180,-30 Z" fill="url(#mesh_glow)" stroke="#ffffff" stroke-width="1.5"/>
+    <!-- Fuselage Body -->
+    <path d="M 0,-115 C -15,-60 -18,10 0,30 C 18,10 15,-60 0,-115 Z" fill="#0f172a" stroke="{c_acc}" stroke-width="2"/>
+    <!-- Cockpit Canopy Glass -->
+    <ellipse cx="0" cy="-45" rx="7" ry="22" fill="#38bdf8" opacity="0.9" filter="url(#glow)"/>
+    <!-- Afterburner Shock Diamonds -->
+    <circle cx="0" cy="38" r="10" fill="#ffffff" filter="url(#glow)"/>
+    <polygon points="-8,35 8,35 0,55" fill="{c_acc}"/>
+  </g>"""
         elif mode == 1:
-            # Quantum Core Lattice with dynamic orbiting rings
-            r1 = 60 + int(20.0 * math.sin(cycle * 0.25))
-            r2 = 95 + int(25.0 * math.cos(cycle * 0.25))
-            center_art = f"""<g transform="translate(400, 260)" filter="url(#glow)">
-              <circle cx="0" cy="0" r="{r1}" fill="none" stroke="{c_acc}" stroke-width="3" stroke-dasharray="8,4"/>
-              <ellipse cx="0" cy="0" rx="{r2}" ry="45" fill="none" stroke="{c_sec}" stroke-width="2.5" transform="rotate({(cycle*15)%360})"/>
-              <ellipse cx="0" cy="0" rx="{r2}" ry="45" fill="none" stroke="{c_tri}" stroke-width="2.5" transform="rotate({(cycle*15 + 60)%360})"/>
-              <circle cx="0" cy="0" r="22" fill="#ffffff" opacity="0.95"/>
-            </g>"""
+            # 2. Majestic Golden Eagle Soaring High Mountain Glacier
+            scene = f"""{defs}
+  <rect width="800" height="600" fill="url(#sky_ambient)"/>
+  {geometry_primitives.sun_aurora(400, 160, 95, c_acc)}
+  {geometry_primitives.mountain_ridge(800, 410, h_ridge + 10, 5, "#1e293b", "#fef08a")}
+  {geometry_primitives.mountain_ridge(800, 480, h_ridge - 50, 7, "#090d16", c_acc)}
+  {geometry_primitives.soaring_wings(400, 210, 1.35, "mesh_glow")}
+  <!-- Eagle Head & Beak Silhouette -->
+  <g transform="translate(400, 210)" filter="url(#glow)">
+    <circle cx="0" cy="5" r="14" fill="#ffffff"/>
+    <polygon points="0,5 18,14 0,16" fill="#f59e0b"/>
+  </g>"""
         elif mode == 2:
-            # High Alpine Ridge with Parametric Peaks
-            p1 = 280 + int(40.0 * math.sin(cycle * 0.18))
-            p2 = 250 + int(35.0 * math.cos(cycle * 0.22))
-            center_art = f"""<g>
-              <polygon points="0,420 120,{p1} 240,410 360,{p2} 480,390 600,{p1-30} 720,400 800,420 800,600 0,600" fill="#0f172a"/>
-              <polygon points="0,490 140,430 280,480 420,410 560,470 700,420 800,490 800,600 0,600" fill="#020617" opacity="0.95"/>
-              <path d="M 300,190 Q 400,140 500,190 Q 400,175 300,190 Z" fill="url(#mesh_glow)" filter="url(#glow)"/>
-            </g>"""
+            # 3. Quantum Superconducting Hexagonal Core Matrix
+            scene = f"""{defs}
+  <rect width="800" height="600" fill="url(#sky_ambient)"/>
+  {geometry_primitives.quantum_core_matrix(400, 270, 85, c_acc)}
+  {geometry_primitives.bento_glass_panel(60, 60, 230, 110, 20, "Q-Tensor Matrix", "4.82 PFLOPS")}
+  {geometry_primitives.bento_glass_panel(510, 60, 230, 110, 20, "Cryo Entropy", "0.012 mK")}"""
         elif mode == 3:
-            # Bio-Helical Resonance Lattice
-            nodes = "".join([
-                f'<circle cx="{250 + i*30}" cy="{250 + int(50*math.sin(i*0.8 + cycle*0.3))}" r="6" fill="{c_acc if i%2==0 else c_sec}"/>'
-                for i in range(11)
+            # 4. Bio-Helical DNA Molecular Resonance
+            rungs = "".join([
+                f'<line x1="{240 + i*25}" y1="{270 + int(45*math.sin(i*0.7 + cycle*0.2))}" x2="{240 + i*25}" y2="{270 - int(45*math.sin(i*0.7 + cycle*0.2))}" stroke="{c_acc if i%2==0 else c_sec}" stroke-width="2.5"/>'
+                f'<circle cx="{240 + i*25}" cy="{270 + int(45*math.sin(i*0.7 + cycle*0.2))}" r="6" fill="#ffffff" filter="url(#glow)"/>'
+                f'<circle cx="{240 + i*25}" cy="{270 - int(45*math.sin(i*0.7 + cycle*0.2))}" r="6" fill="{c_acc}"/>'
+                for i in range(13)
             ])
-            center_art = f"""<g filter="url(#glow)">
-              <path d="M 250,250 Q 400,{200 + int(40*math.sin(cycle*0.2))} 550,250" stroke="{c_acc}" stroke-width="3" fill="none"/>
-              <path d="M 250,250 Q 400,{300 - int(40*math.sin(cycle*0.2))} 550,250" stroke="{c_sec}" stroke-width="3" fill="none"/>
-              {nodes}
-            </g>"""
+            scene = f"""{defs}
+  <rect width="800" height="600" fill="url(#sky_ambient)"/>
+  {geometry_primitives.sun_aurora(sun_x, sun_y, 75, c_acc)}
+  <g filter="url(#glow)">
+    {rungs}
+  </g>"""
         elif mode == 4:
-            # Spatial HUD Telemetry Glass
-            center_art = f"""<g transform="translate(400, 260)" filter="url(#glow)">
-              <rect x="-160" y="-80" width="320" height="160" rx="20" fill="#0f172a" fill-opacity="0.75" stroke="{c_acc}" stroke-width="2"/>
-              <circle cx="-90" cy="0" r="40" fill="none" stroke="{c_sec}" stroke-width="4" stroke-dasharray="180,60"/>
-              <text x="30" y="-20" fill="#ffffff" font-family="monospace" font-size="14" font-weight="bold">HUD TELEMETRY</text>
-              <text x="30" y="5" fill="{c_acc}" font-family="monospace" font-size="11">MACH {2.4 + (cycle%10)*0.2:.1f} • ALT {35000 + (cycle*120)%15000}FT</text>
-              <text x="30" y="28" fill="#94a3b8" font-family="monospace" font-size="10">BEARING {(cycle*23)%360}° VECTOR</text>
-            </g>"""
+            # 5. VisionOS Spatial Glassmorphism HUD Interface
+            scene = f"""{defs}
+  <rect width="800" height="600" fill="url(#sky_ambient)"/>
+  {geometry_primitives.sun_aurora(400, 300, 140, c_acc)}
+  <!-- Frosted Glass Central HUD Panel -->
+  <g transform="translate(400, 280)" filter="url(#glow)">
+    <rect x="-240" y="-120" width="480" height="240" rx="28" fill="#0f172a" fill-opacity="0.8" stroke="url(#mesh_glow)" stroke-width="2"/>
+    <circle cx="-130" cy="0" r="55" fill="none" stroke="{c_acc}" stroke-width="4" stroke-dasharray="240,40"/>
+    <text x="-130" y="8" fill="#ffffff" font-family="monospace" font-size="16" font-weight="bold" text-anchor="middle">MACH {3.2 + (cycle%10)*0.1:.1f}</text>
+    <text x="30" y="-40" fill="#ffffff" font-family="sans-serif" font-size="18" font-weight="800">SPATIAL HUD VECTOR</text>
+    <text x="30" y="-10" fill="{c_acc}" font-family="monospace" font-size="12">ALTITUDE: {42000 + (cycle*150)%12000} FT</text>
+    <text x="30" y="15" fill="#94a3b8" font-family="monospace" font-size="11">BEARING: {(cycle*27)%360}° STRATOSPHERE</text>
+    <text x="30" y="42" fill="#10b981" font-family="monospace" font-size="11">● SUB-PIXEL INVARIANTS: VERIFIED</text>
+  </g>"""
         else:
-            # Stellar Fusion Core
-            center_art = f"""<g transform="translate(400, 260)" filter="url(#glow)">
-              <circle cx="0" cy="0" r="85" fill="none" stroke="{c_acc}" stroke-width="2" stroke-dasharray="12,6"/>
-              <circle cx="0" cy="0" r="55" fill="url(#sun_glow)"/>
-              <circle cx="0" cy="0" r="25" fill="#ffffff"/>
-              <line x1="-120" y1="0" x2="120" y2="0" stroke="{c_sec}" stroke-width="2"/>
-              <line x1="0" y1="-120" x2="0" y2="120" stroke="{c_sec}" stroke-width="2"/>
-            </g>"""
+            # 6. Deep Space Magnetic Tokamak Fusion Reactor
+            scene = f"""{defs}
+  <rect width="800" height="600" fill="url(#sky_ambient)"/>
+  <g transform="translate(400, 300)" filter="url(#glow)">
+    <!-- Outer Magnetic Coils -->
+    <circle cx="0" cy="0" r="140" fill="none" stroke="{c_sec}" stroke-width="3" stroke-dasharray="20,10"/>
+    <circle cx="0" cy="0" r="100" fill="none" stroke="{c_acc}" stroke-width="4" stroke-dasharray="14,6" transform="rotate({(cycle*20)%360})"/>
+    <circle cx="0" cy="0" r="65" fill="url(#sun_glow)"/>
+    <circle cx="0" cy="0" r="30" fill="#ffffff"/>
+    <line x1="-160" y1="0" x2="160" y2="0" stroke="{c_tri}" stroke-width="2"/>
+    <line x1="0" y1="-160" x2="0" y2="160" stroke="{c_tri}" stroke-width="2"/>
+  </g>"""
 
         return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
-  <defs>
-    <linearGradient id="sky_ambient" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#020617"/>
-      <stop offset="40%" stop-color="#0f172a"/>
-      <stop offset="80%" stop-color="#1e1b4b"/>
-      <stop offset="100%" stop-color="#312e81"/>
-    </linearGradient>
-    <linearGradient id="mesh_glow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="{c_sec}"/>
-      <stop offset="50%" stop-color="{c_acc}"/>
-      <stop offset="100%" stop-color="{c_tri}"/>
-    </linearGradient>
-    <radialGradient id="sun_glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="35%" stop-color="{c_acc}"/>
-      <stop offset="75%" stop-color="{c_sec}" stop-opacity="0.6"/>
-      <stop offset="100%" stop-color="#020617" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  </defs>
-  <rect width="800" height="600" fill="url(#sky_ambient)"/>
-  <circle cx="{sun_x}" cy="{sun_y}" r="{sun_r}" fill="url(#sun_glow)" filter="url(#glow)"/>
-  {center_art}
+  {scene}
 </svg>"""
 
     def _generate_bento_html(self, cycle: int = 1) -> str:
-        """Render live responsive Bento Grid layout in HTML/Tailwind."""
-        themes = ["#38bdf8", "#a855f7", "#fbbf24", "#10b981", "#ec4899"]
-        c_acc = themes[cycle % len(themes)]
-        return f"""<div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-950 border border-slate-800 text-white">
-  <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-750">
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Token Accent</div>
-    <div class="flex items-center gap-2 mt-1.5">
-      <span class="w-5 h-5 rounded-full border border-white/20 shadow-md" style="background-color: {c_acc}"></span>
-      <span class="text-xs font-mono font-bold text-cyan-300">{c_acc}</span>
+        """Render diverse, dynamic production-grade Web UI components."""
+        h_prime = (cycle * 37.0) % 360.0
+        c_acc = self._hsl_to_hex(h_prime, 90.0, 60.0)
+        c_sec = self._hsl_to_hex((h_prime + 120.0) % 360.0, 85.0, 55.0)
+        mode = cycle % 6
+
+        if mode == 0:
+            # Template 0: Enterprise Analytics & Revenue Dashboard
+            return f"""<div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-white space-y-3 font-sans">
+  <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+    <div class="flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+      <span class="text-xs font-black uppercase tracking-wider text-slate-200">Revenue & Latency Dashboard</span>
     </div>
-    <div class="text-[10px] text-slate-500 mt-2">WCAG AAA 13.4:1 Invariant</div>
+    <span class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-cyan-300 border border-indigo-500/20">Live Sync</span>
   </div>
-  <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-750">
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Perceptual Fitness</div>
-    <div class="text-base font-extrabold text-emerald-400 mt-1">95.0% Masterpiece</div>
-    <div class="text-[10px] text-slate-400 mt-0.5">14 Organic Beziers • 6 Gradients</div>
+  <div class="grid grid-cols-3 gap-2.5">
+    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+      <div class="text-[10px] text-slate-400 font-bold uppercase">Annual ARR</div>
+      <div class="text-base font-black text-white mt-0.5">$4.82M</div>
+      <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">↑ +18.4% YoY</div>
+    </div>
+    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+      <div class="text-[10px] text-slate-400 font-bold uppercase">P99 Latency</div>
+      <div class="text-base font-black text-cyan-300 mt-0.5">1.24 ms</div>
+      <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">⚡ 0.02ms warm cache</div>
+    </div>
+    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+      <div class="text-[10px] text-slate-400 font-bold uppercase">Churn Risk</div>
+      <div class="text-base font-black text-indigo-300 mt-0.5">0.82%</div>
+      <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">✓ Causal Verified</div>
+    </div>
   </div>
-  <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-750">
-    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Component Export</div>
-    <div class="text-xs font-bold text-purple-300 mt-1.5">React JSX (Tailwind v4)</div>
-    <div class="text-[10px] text-slate-500 mt-1">Ready for 1-Click Injection</div>
+  <div class="flex items-center justify-between pt-1">
+    <div class="flex items-center gap-2 text-xs font-mono">
+      <span class="w-3.5 h-3.5 rounded-full border border-white/20" style="background-color: {c_acc}"></span>
+      <span class="text-slate-400">Accent: <strong class="text-cyan-300">{c_acc}</strong></span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow hover:bg-indigo-500 transition">+ New Query</button>
+      <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-200 hover:bg-slate-700 transition">Export CSV</button>
+    </div>
+  </div>
+</div>"""
+
+        elif mode == 1:
+            # Template 1: AI Prompt Engineer & Copilot Studio
+            return f"""<div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-white space-y-3 font-sans">
+  <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+    <div class="flex items-center gap-2 text-xs font-bold text-purple-300">
+      <span>🤖 AI Copilot & LLM Playground</span>
+    </div>
+    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">Model: qwen/qwen3.6-27b</span>
+  </div>
+  <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 leading-relaxed font-mono">
+    <span class="text-emerald-400">user:</span> Optimize collinear covariance matrix inversion.<br/>
+    <span class="text-indigo-400">assistant:</span> Applying C-contiguous SIMD BLAS solver with Ridge regularizer <strong class="text-cyan-300">λ = 1e-4</strong> (Speedup: 4.8x).
+  </div>
+  <div class="flex items-center justify-between text-xs text-slate-400">
+    <span>Token Consumption: <strong class="text-emerald-400">0 Tokens (Local Heuristics)</strong></span>
+    <span class="text-[11px] font-mono text-indigo-400">Temp: 0.2 • Top-P: 0.95</span>
+  </div>
+</div>"""
+
+        elif mode == 2:
+            # Template 2: FinTech Algorithmic Trading & Risk Terminal
+            return f"""<div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-white space-y-3 font-sans">
+  <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+    <div class="flex items-center gap-2 text-xs font-bold text-cyan-300">
+      <span>📈 High-Frequency Quant Terminal</span>
+    </div>
+    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">BTC/USD +4.82%</span>
+  </div>
+  <div class="grid grid-cols-2 gap-2 text-xs">
+    <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+      <span class="text-[10px] text-slate-400 block">FAT-TAIL VaR 95%</span>
+      <span class="text-sm font-black text-amber-400 mt-0.5 block">-2.2899</span>
+      <span class="text-[10px] text-slate-500">Student-t (df=3)</span>
+    </div>
+    <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+      <span class="text-[10px] text-slate-400 block">EXPECTED SHORTFALL</span>
+      <span class="text-sm font-black text-red-400 mt-0.5 block">-3.8718 (CVaR)</span>
+      <span class="text-[10px] text-slate-500">69% Extra Left Tail</span>
+    </div>
+  </div>
+  <div class="flex items-center gap-2 pt-1">
+    <button class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow transition">BUY $10,000</button>
+    <button class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-red-600 hover:bg-red-500 text-white shadow transition">HEDGE SHORT</button>
+  </div>
+</div>"""
+
+        elif mode == 3:
+            # Template 3: VisionOS Spatial Glassmorphism HUD
+            return f"""<div class="p-4 rounded-2xl bg-slate-950 border border-purple-500/30 text-white space-y-3 font-sans shadow-lg shadow-purple-500/10">
+  <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+    <div class="flex items-center gap-2 text-xs font-bold text-purple-300">
+      <span>🥽 VisionOS 2.5D Spatial Glass Dashboard</span>
+    </div>
+    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">Frosted Blur 24px</span>
+  </div>
+  <div class="p-3.5 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10 flex items-center justify-between">
+    <div>
+      <div class="text-xs font-bold text-white">Spatial Anchor Position</div>
+      <div class="text-[10px] text-slate-400 mt-0.5 font-mono">X: 0.42m • Y: 1.18m • Z: -0.85m</div>
+    </div>
+    <span class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-purple-500/30 font-bold text-xs">3D</span>
+  </div>
+  <div class="flex items-center justify-between text-xs text-slate-400">
+    <span>Contrast Ratio: <strong class="text-emerald-400">13.4:1 (WCAG AAA)</strong></span>
+    <span class="text-[11px] font-mono text-cyan-300">Sub-pixel Invariants: OK</span>
+  </div>
+</div>"""
+
+        elif mode == 4:
+            # Template 4: Cybersecurity SOC Threat Command Center
+            return f"""<div class="p-4 rounded-2xl bg-slate-950 border border-emerald-500/30 text-white space-y-3 font-sans">
+  <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+    <div class="flex items-center gap-2 text-xs font-bold text-emerald-400">
+      <span>🛡️ Zero-Trust Threat Command Center</span>
+    </div>
+    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">STATUS: 100% SECURE</span>
+  </div>
+  <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 font-mono text-[11px] space-y-1 text-emerald-300">
+    <div class="text-slate-400">[THREAT LOG] 10 Zero-Day AST Exploit Probes Tested:</div>
+    <div>● Descriptor Probe: <span class="text-red-400 font-bold">BLOCKED (0 Escapes)</span></div>
+    <div>● SSRF IP Validator: <span class="text-emerald-400 font-bold">100% CONTAINED</span></div>
+  </div>
+  <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
+    <span>Active Cert: <strong class="text-white font-mono">TLS 1.3 / Ed25519</strong></span>
+    <button class="px-3 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition">Audit Log</button>
+  </div>
+</div>"""
+
+        else:
+            # Template 5: Developer API Token & Rate-Limit Gateway
+            return f"""<div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-white space-y-3 font-sans">
+  <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+    <div class="flex items-center gap-2 text-xs font-bold text-cyan-300">
+      <span>⚡ Developer API Gateway & Tokens</span>
+    </div>
+    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">W3C DTCG Format</span>
+  </div>
+  <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs font-mono">
+    <span class="text-slate-400">Bearer sk-live_df_{c_acc[1:]}••••••••</span>
+    <span class="text-emerald-400 font-bold text-[10px] px-2 py-0.5 rounded bg-emerald-500/10">Active Key</span>
+  </div>
+  <div class="flex items-center justify-between text-xs text-slate-400">
+    <span>Rate Limit: <strong class="text-white">12% / 10,000 req/min</strong></span>
+    <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition">Copy Token Specs</button>
   </div>
 </div>"""
 
