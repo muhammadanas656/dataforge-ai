@@ -1,4 +1,4 @@
-﻿"""Multi-scenario planning with Monte Carlo simulation for business viability analysis."""
+"""Multi-scenario planning with Monte Carlo simulation for business viability analysis."""
 import numpy as np
 from typing import Dict, List, Optional
 from datetime import datetime
@@ -98,14 +98,28 @@ class ScenarioPlanner:
         except Exception:
             return None
     
-    def _run_monte_carlo(self, base_scenario: Dict, fixed_costs: float, n_months: int = 12) -> Dict:
+    def _run_monte_carlo(self, base_scenario: Dict, fixed_costs: float, n_months: int = 12, distribution: str = "student_t") -> Dict:
+        """Run Monte Carlo simulation with Gaussian or Fat-Tail (Student-t / Cauchy) shock modeling."""
         try:
             monthly_profits = []
             cumulative_profits = []
             
             for _ in range(self.n_simulations):
-                units = max(1.0, np.random.normal(base_scenario['units_per_month'], base_scenario['units_per_month'] * 0.3))
-                cac = max(1.0, np.random.normal(base_scenario['cac_usd'], base_scenario['cac_usd'] * 0.2))
+                if distribution == "student_t":
+                    # Heavy-tailed Student-t (df=3) capturing black swan shocks
+                    unit_shock = np.clip(np.random.standard_t(df=3) * 0.25, -0.6, 2.5)
+                    cac_shock = np.clip(np.random.standard_t(df=3) * 0.20, -0.5, 2.0)
+                    units = max(1.0, base_scenario['units_per_month'] * (1.0 + unit_shock))
+                    cac = max(1.0, base_scenario['cac_usd'] * (1.0 + cac_shock))
+                elif distribution == "pareto":
+                    # Power-law / viral exponential returns
+                    unit_shock = np.clip((np.random.pareto(a=2.5) - 0.67) * 0.3, -0.5, 3.0)
+                    units = max(1.0, base_scenario['units_per_month'] * (1.0 + unit_shock))
+                    cac = max(1.0, np.random.normal(base_scenario['cac_usd'], base_scenario['cac_usd'] * 0.2))
+                else:
+                    # Classical Gaussian Normal
+                    units = max(1.0, np.random.normal(base_scenario['units_per_month'], base_scenario['units_per_month'] * 0.3))
+                    cac = max(1.0, np.random.normal(base_scenario['cac_usd'], base_scenario['cac_usd'] * 0.2))
                 
                 rev = units * base_scenario['price_usd']
                 cogs = units * base_scenario['cogs_usd']
@@ -124,8 +138,14 @@ class ScenarioPlanner:
             m_arr = np.array(monthly_profits)
             c_arr = np.array(cumulative_profits)
             
+            # Compute Value at Risk (VaR 95%) and Conditional VaR (Expected Shortfall)
+            var_95 = float(round(np.percentile(m_arr, 5), 1))
+            tail_losses = m_arr[m_arr <= var_95]
+            cvar_95 = float(round(np.mean(tail_losses) if len(tail_losses) > 0 else var_95, 1))
+
             return {
                 'n_simulations': self.n_simulations,
+                'distribution_model': distribution,
                 'monthly_profit': {
                     'mean': float(round(np.mean(m_arr), 1)),
                     'median': float(round(np.median(m_arr), 1)),
@@ -135,6 +155,11 @@ class ScenarioPlanner:
                     'p90': float(round(np.percentile(m_arr, 90), 1)),
                     'min': float(round(np.min(m_arr), 1)),
                     'max': float(round(np.max(m_arr), 1))
+                },
+                'fat_tail_risk_metrics': {
+                    'var_95_percent': var_95,
+                    'expected_shortfall_cvar_95': cvar_95,
+                    'black_swan_resilience': "High" if var_95 > 0 else ("Moderate" if var_95 > -1000 else "Vulnerable")
                 },
                 'cumulative_profit_12mo': {
                     'p10': float(round(np.percentile(c_arr, 10), 1)),

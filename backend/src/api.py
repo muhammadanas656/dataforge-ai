@@ -1468,4 +1468,11 @@ async def api_workflows_execute(payload: dict = Body(...)):
     return await studio_orchestrator.execute_workflow(steps)
 
 
+@app.get("/api/system/health")
+def api_system_health():
+    """Live production health, latency percentiles, error rate, and SSRF security telemetry."""
+    from src.production_monitor import production_monitor
+    return production_monitor.get_health_metrics()
+
+
 
