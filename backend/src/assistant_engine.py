@@ -946,5 +946,35 @@ class AssistantEngine:
             "action_card": result.get("action_card")
         }) + "\n"
 
+    def list_sessions(self) -> List[Dict[str, Any]]:
+        """List all active conversation sessions with title summaries and message counts."""
+        sessions = []
+        for sess_id, msgs in self.conversation_history.items():
+            if not msgs:
+                continue
+            first_user_msg = next((m["content"] for m in msgs if m["role"] == "user"), "New Conversation")
+            title = first_user_msg.strip().replace("\n", " ")
+            if len(title) > 40:
+                title = title[:37] + "..."
+            sessions.append({
+                "session_id": sess_id,
+                "title": title,
+                "message_count": len(msgs),
+                "last_message": msgs[-1]["content"][:60],
+                "updated_at": time.time()
+            })
+        return sorted(sessions, key=lambda s: s["updated_at"], reverse=True)
+
+    def get_session_history(self, session_id: str) -> List[Dict[str, Any]]:
+        """Retrieve full message history for a given session."""
+        return self.conversation_history.get(session_id, [])
+
+    def delete_session(self, session_id: str) -> bool:
+        """Delete a conversation session from active memory."""
+        if session_id in self.conversation_history:
+            del self.conversation_history[session_id]
+            return True
+        return False
+
 
 assistant_engine = AssistantEngine()

@@ -15,7 +15,14 @@ import {
   CheckCircle2,
   Play,
   ArrowRight,
-  Terminal
+  Terminal,
+  History,
+  Plus,
+  Trash2,
+  MessageSquare,
+  ChevronLeft,
+  ChevronRight,
+  Clock
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -39,6 +46,7 @@ const markdownComponents = {
 export default function AssistantWidget() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -46,9 +54,17 @@ export default function AssistantWidget() {
   const [tokenStats, setTokenStats] = useState({ total_tokens_saved: 0, cached_queries_count: 0 });
   const [isSimpleMode, setIsSimpleMode] = useState(false);
   const [softRedirect, setSoftRedirect] = useState(null);
+  const [sessions, setSessions] = useState([]);
   const messagesEndRef = useRef(null);
-  const sessionId = useRef(`sess_${Math.random().toString(36).substring(2, 9)}`);
-  useContextTracker(sessionId.current);
+  
+  // Active session ID state
+  const [currentSessionId, setCurrentSessionId] = useState(() => {
+    return `sess_${Math.random().toString(36).substring(2, 9)}`;
+  });
+  const sessionIdRef = useRef(currentSessionId);
+  sessionIdRef.current = currentSessionId;
+
+  useContextTracker(currentSessionId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -58,9 +74,44 @@ export default function AssistantWidget() {
     scrollToBottom();
   }, [messages, isStreaming]);
 
+  // Load saved sessions from localStorage & backend on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("dataforge_chat_sessions");
+      if (stored) {
+        setSessions(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error("Failed to load local chat sessions", e);
+    }
+  }, []);
+
+  // Sync sessions list with backend
+  const fetchBackendSessions = async () => {
+    try {
+      const res = await authFetch("/api/assistant/sessions");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.sessions && data.sessions.length > 0) {
+          setSessions((prev) => {
+            const combined = [...data.sessions];
+            prev.forEach((p) => {
+              if (!combined.some((c) => c.session_id === p.session_id)) {
+                combined.push(p);
+              }
+            });
+            localStorage.setItem("dataforge_chat_sessions", JSON.stringify(combined));
+            return combined;
+          });
+        }
+      }
+    } catch (e) {}
+  };
+
   useEffect(() => {
     if (isOpen) {
-      authFetch(`/api/context/current?session_id=${sessionId.current}`)
+      fetchBackendSessions();
+      authFetch(`/api/context/current?session_id=${currentSessionId}`)
         .then((r) => r.json())
         .then(setContextData)
         .catch(() => {});
@@ -70,7 +121,94 @@ export default function AssistantWidget() {
         .then(setTokenStats)
         .catch(() => {});
     }
-  }, [isOpen]);
+  }, [isOpen, currentSessionId]);
+
+  // Helper to save current thread into sessions list
+  const persistCurrentSession = (updatedMessages, currentSessId) => {
+    if (!updatedMessages || updatedMessages.length === 0) return;
+    
+    const firstUserMsg = updatedMessages.find((m) => m.role === "user");
+    let title = firstUserMsg ? firstUserMsg.content.trim().replace(/\n/g, " ") : "New Conversation";
+    if (title.length > 36) title = title.substring(0, 33) + "...";
+
+    const sessionObj = {
+      session_id: currentSessId,
+      title: title || "Conversation",
+      message_count: updatedMessages.length,
+      last_message: updatedMessages[updatedMessages.length - 1]?.content?.substring(0, 50) || "",
+      updated_at: Date.now()
+    };
+
+    setSessions((prev) => {
+      const filtered = prev.filter((s) => s.session_id !== currentSessId);
+      const nextSessions = [sessionObj, ...filtered];
+      try {
+        localStorage.setItem("dataforge_chat_sessions", JSON.stringify(nextSessions));
+        localStorage.setItem(`dataforge_thread_${currentSessId}`, JSON.stringify(updatedMessages));
+      } catch (e) {}
+      return nextSessions;
+    });
+  };
+
+  // Start a fresh New Chat
+  const handleNewChat = () => {
+    if (messages.length > 0) {
+      persistCurrentSession(messages, currentSessionId);
+    }
+    const newSessId = `sess_${Math.random().toString(36).substring(2, 9)}`;
+    setCurrentSessionId(newSessId);
+    setMessages([]);
+    setIsHistoryOpen(false);
+  };
+
+  // Switch to a previous chat session
+  const handleSelectSession = async (sess) => {
+    if (messages.length > 0) {
+      persistCurrentSession(messages, currentSessionId);
+    }
+
+    setCurrentSessionId(sess.session_id);
+    setIsHistoryOpen(false);
+
+    // Try loading thread from local storage first
+    try {
+      const localThread = localStorage.getItem(`dataforge_thread_${sess.session_id}`);
+      if (localThread) {
+        setMessages(JSON.parse(localThread));
+        return;
+      }
+    } catch (e) {}
+
+    // Fallback: fetch from backend
+    try {
+      const res = await authFetch(`/api/assistant/sessions/${sess.session_id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(data.messages || []);
+      }
+    } catch (e) {
+      console.error("Failed to load session history", e);
+    }
+  };
+
+  // Delete a chat session
+  const handleDeleteSession = (sessId, e) => {
+    e.stopPropagation();
+    setSessions((prev) => {
+      const nextSessions = prev.filter((s) => s.session_id !== sessId);
+      try {
+        localStorage.setItem("dataforge_chat_sessions", JSON.stringify(nextSessions));
+        localStorage.removeItem(`dataforge_thread_${sessId}`);
+      } catch (err) {}
+      return nextSessions;
+    });
+
+    authFetch(`/api/assistant/sessions/${sessId}`, { method: "DELETE" }).catch(() => {});
+
+    if (currentSessionId === sessId) {
+      handleNewChat();
+    }
+  };
 
   const handleSend = async (overrideText = null) => {
     const rawText = overrideText || input;
@@ -80,19 +218,19 @@ export default function AssistantWidget() {
       ? `${rawText.trim()} (explain simply like I'm 10 with analogies)`
       : rawText.trim();
 
-    setMessages((prev) => [...prev, { role: "user", content: rawText }]);
+    const newMessages = [...messages, { role: "user", content: rawText }];
+    setMessages(newMessages);
     setInput("");
     setIsStreaming(true);
 
     try {
-      // 1. Try streaming endpoint first
       let streamSucceeded = false;
       try {
         const res = await authFetch(`/api/assistant/stream`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            session_id: sessionId.current,
+            session_id: currentSessionId,
             query: text
           })
         });
@@ -108,69 +246,72 @@ export default function AssistantWidget() {
             if (done) break;
 
             const chunk = decoder.decode(value);
-            const lines = chunk.split("\n").filter((l) => l.trim());
-
+            const lines = chunk.split("\n").filter((l) => l.trim().length > 0);
             for (const line of lines) {
               try {
-                const data = JSON.parse(line);
-                if (data.type === "chunk") {
-                  assistantMsg.content += data.content;
+                const parsed = JSON.parse(line);
+                if (parsed.type === "chunk") {
+                  assistantMsg.content += parsed.content;
                   setMessages((prev) => {
-                    const updated = [...prev];
-                    updated[updated.length - 1] = { ...assistantMsg };
-                    return updated;
+                    const copy = [...prev];
+                    copy[copy.length - 1] = { ...assistantMsg };
+                    return copy;
                   });
-                } else if (data.type === "done") {
-                  if (data.action_card) assistantMsg.action_card = data.action_card;
-                  if (data.cached) assistantMsg.cached = true;
-                  if (data.total_tokens_saved) {
-                    setTokenStats((prev) => ({ ...prev, total_tokens_saved: data.total_tokens_saved }));
+                } else if (parsed.type === "done") {
+                  streamSucceeded = true;
+                  if (parsed.action_card) {
+                    assistantMsg.action_card = parsed.action_card;
+                    if (parsed.action_card.route_link) {
+                      setSoftRedirect({
+                        route: parsed.action_card.route_link,
+                        label: parsed.action_card.route_label || "Workspace"
+                      });
+                    }
                   }
+                  if (parsed.cached) assistantMsg.cached = true;
                   setMessages((prev) => {
-                    const updated = [...prev];
-                    updated[updated.length - 1] = { ...assistantMsg };
-                    return updated;
+                    const copy = [...prev];
+                    copy[copy.length - 1] = { ...assistantMsg };
+                    persistCurrentSession(copy, currentSessionId);
+                    return copy;
                   });
-                  setIsStreaming(false);
                 }
-              } catch (e) {
-                // Non-json chunk
-              }
+              } catch (parseErr) {}
             }
           }
-          streamSucceeded = true;
         }
       } catch (streamErr) {
-        console.warn("Stream attempt fallback:", streamErr);
+        console.warn("Stream failed, falling back to JSON POST", streamErr);
       }
 
-      // 2. Direct JSON query endpoint fallback
       if (!streamSucceeded) {
-        const fallbackRes = await authFetch(`/api/assistant/query`, {
+        const res = await authFetch(`/api/assistant/query`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            session_id: sessionId.current,
-            query: text
-          })
+          body: JSON.stringify({ session_id: currentSessionId, query: text })
         });
 
-        if (fallbackRes.ok) {
-          const fallbackData = await fallbackRes.json();
-          if (fallbackData.total_tokens_saved) {
-            setTokenStats((prev) => ({ ...prev, total_tokens_saved: fallbackData.total_tokens_saved }));
+        if (res.ok) {
+          const data = await res.json();
+          if (data.action_card?.route_link) {
+            setSoftRedirect({
+              route: data.action_card.route_link,
+              label: data.action_card.route_label || "Workspace"
+            });
           }
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: fallbackData.response || "I am ready to assist you.",
-              action_card: fallbackData.action_card,
-              cached: fallbackData.cached
-            }
-          ]);
-        } else {
-          throw new Error("Fallback query also returned non-200");
+          setMessages((prev) => {
+            const updated = [
+              ...prev,
+              {
+                role: "assistant",
+                content: data.response || "No response.",
+                action_card: data.action_card || null,
+                cached: data.cached || false
+              }
+            ];
+            persistCurrentSession(updated, currentSessionId);
+            return updated;
+          });
         }
       }
     } catch (err) {
@@ -196,7 +337,7 @@ export default function AssistantWidget() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          session_id: sessionId.current,
+          session_id: currentSessionId,
           tool_name: proposal.tool_name,
           args: proposal.args || {}
         })
@@ -210,16 +351,18 @@ export default function AssistantWidget() {
             label: data.action_card.route_label || "Workspace"
           });
         }
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: data.response || "Action executed successfully.",
-            action_card: data.action_card
-          }
-        ]);
-      } else {
-        throw new Error("Action execution failed");
+        setMessages((prev) => {
+          const updated = [
+            ...prev,
+            {
+              role: "assistant",
+              content: data.response || "Action executed successfully.",
+              action_card: data.action_card
+            }
+          ];
+          persistCurrentSession(updated, currentSessionId);
+          return updated;
+        });
       }
     } catch (e) {
       setMessages((prev) => [
@@ -258,9 +401,9 @@ export default function AssistantWidget() {
   ] : [
     { label: "🚀 Run Auto-Pilot on my dataset", action: true },
     { label: "🎯 Scrape leads for AI startups", action: true },
+    { label: "🎨 Generate quantum aerospace vector", action: true },
     { label: "📦 Export standalone Python code", action: true },
     { label: "💡 Resolve TRIZ contradiction", action: true },
-    { label: "❓ What services does DataForge provide?", action: false },
     { label: "📊 How does Causal DAG inference work?", action: false }
   ];
 
@@ -269,59 +412,126 @@ export default function AssistantWidget() {
       {/* Floating Launcher Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white rounded-full px-4 py-3 shadow-2xl transition-all hover:scale-105 font-medium text-xs border border-indigo-400/40"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white rounded-full px-4 py-3 shadow-2xl transition-all hover:scale-105 font-bold text-xs border border-indigo-400/40 cursor-pointer"
         title="Open DataForge Autonomous Copilot"
       >
-        <IconAutopilot size={18} className="animate-glow" />
+        <IconAutopilot size={18} className="animate-pulse text-cyan-300" />
         <span>{isOpen ? "Close Copilot" : "Autonomous Copilot"}</span>
       </button>
 
-      {/* Slide-out Floating Chat Window */}
+      {/* Slide-out Multi-Session Chat Application Window */}
       {isOpen && (
-        <div className="fixed bottom-20 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] h-[580px] max-h-[calc(100vh-6rem)] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
-          {/* Header */}
-          <div className="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60">
+        <div className="fixed bottom-20 right-6 z-50 w-[420px] max-w-[calc(100vw-2rem)] h-[620px] max-h-[calc(100vh-6rem)] bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
+          
+          {/* HEADER WITH NEW CHAT & HISTORY TOGGLE */}
+          <div className="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-850">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-indigo-600 text-white">
-                <IconAutopilot size={16} />
-              </div>
-              <div>
-                <h3 className="font-bold text-xs text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                  Autonomous Copilot
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-cyan-100 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 font-mono">
-                    Action-Enabled
-                  </span>
-                </h3>
-                <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                  <span>Module: {contextData?.active_module || "Overview"}</span>
-                  {tokenStats.total_tokens_saved > 0 && (
-                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-0.5">
-                      <Zap size={10} /> {tokenStats.total_tokens_saved} tokens saved
-                    </span>
-                  )}
-                </div>
-              </div>
+              <button
+                onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                className={`p-1.5 rounded-xl border transition cursor-pointer ${
+                  isHistoryOpen
+                    ? "bg-indigo-600 text-white border-indigo-500"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-white border-slate-300 dark:border-slate-700"
+                }`}
+                title="View Past Chat Sessions"
+              >
+                <History size={15} />
+              </button>
+
+              <button
+                onClick={handleNewChat}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 transition cursor-pointer"
+                title="Start a New Conversation"
+              >
+                <Plus size={13} />
+                <span>New Chat</span>
+              </button>
             </div>
+
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setIsSimpleMode(!isSimpleMode)}
-                className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition ${
+                className={`px-2 py-1 rounded-xl text-[10px] font-bold border transition cursor-pointer ${
                   isSimpleMode
-                    ? "bg-amber-500/20 text-amber-500 border-amber-500/40"
+                    ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
                     : "bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-300 dark:border-slate-700 hover:text-slate-200"
                 }`}
-                title="Toggle Simple Mode (ELI5 Explanations with Analogies)"
+                title="Toggle Simple Mode"
               >
-                {isSimpleMode ? "🧸 Simple Mode ON" : "🎓 Simple Mode"}
+                {isSimpleMode ? "🧸 Simple ON" : "🎓 Simple"}
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
               >
                 <X size={16} />
               </button>
             </div>
           </div>
+
+          {/* SESSIONS HISTORY DRAWER (SLIDE OVERLAY) */}
+          {isHistoryOpen && (
+            <div className="absolute inset-x-0 top-14 bottom-14 z-40 bg-slate-950/95 backdrop-blur-2xl p-4 flex flex-col space-y-3 overflow-y-auto animate-in slide-in-from-left duration-200">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Clock size={13} className="text-indigo-400" />
+                  Past Conversations ({sessions.length})
+                </span>
+                <button
+                  onClick={() => setIsHistoryOpen(false)}
+                  className="text-xs text-slate-400 hover:text-white"
+                >
+                  Close
+                </button>
+              </div>
+
+              {sessions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-48 text-center text-slate-500 space-y-2">
+                  <MessageSquare size={28} className="opacity-40" />
+                  <p className="text-xs">No saved chat sessions yet.</p>
+                  <button
+                    onClick={handleNewChat}
+                    className="px-3 py-1.5 text-xs font-bold bg-indigo-600 text-white rounded-xl"
+                  >
+                    Start First Chat
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {sessions.map((sess) => {
+                    const isActive = sess.session_id === currentSessionId;
+                    return (
+                      <div
+                        key={sess.session_id}
+                        onClick={() => handleSelectSession(sess)}
+                        className={`group p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                          isActive
+                            ? "bg-indigo-600/20 border-indigo-500 text-white shadow-md shadow-indigo-600/10"
+                            : "bg-slate-900/60 border-slate-800/80 text-slate-300 hover:bg-slate-900 hover:border-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <MessageSquare size={14} className={isActive ? "text-indigo-400 shrink-0" : "text-slate-500 shrink-0"} />
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold truncate">{sess.title}</div>
+                            <div className="text-[10px] text-slate-500 truncate">{sess.message_count || 1} turns • {sess.last_message || "Active chat"}</div>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={(e) => handleDeleteSession(sess.session_id, e)}
+                          className="p-1 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition opacity-0 group-hover:opacity-100"
+                          title="Delete Session"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Soft Non-Intrusive Redirection Notice */}
           {softRedirect && (
@@ -329,59 +539,42 @@ export default function AssistantWidget() {
               <span className="text-slate-700 dark:text-slate-200 font-medium truncate">
                 ✨ <strong>{softRedirect.label}</strong> is ready to explore.
               </span>
-              <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                <button
-                  onClick={() => {
-                    router.push(softRedirect.route);
-                    setSoftRedirect(null);
-                  }}
-                  className="px-2 py-0.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition flex items-center gap-1 shadow-2xs text-[9px]"
-                >
-                  <span>Switch View</span>
-                  <ArrowRight size={9} />
-                </button>
-                <button
-                  onClick={() => setSoftRedirect(null)}
-                  className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded"
-                  title="Dismiss notice and stay on current page"
-                >
-                  <X size={12} />
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  router.push(softRedirect.route);
+                  setSoftRedirect(null);
+                }}
+                className="px-2 py-0.5 rounded-md bg-cyan-600 text-white font-bold hover:bg-cyan-500 transition cursor-pointer"
+              >
+                Go →
+              </button>
             </div>
           )}
 
-          {/* Messages Feed */}
-          <div className="flex-1 overflow-y-auto p-3.5 space-y-3 text-xs">
+          {/* Messages Stream Area */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
             {messages.length === 0 && (
-              <div className="text-center py-4 space-y-3">
-                <div className="w-10 h-10 mx-auto rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                  <Sparkles size={20} />
+              <div className="flex flex-col items-center justify-center h-full text-center space-y-4 p-4 text-slate-400">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center text-white shadow-xl shadow-indigo-500/20">
+                  <Sparkles size={22} className="animate-pulse" />
                 </div>
-                <div className="space-y-1 px-4">
-                  <h4 className="font-semibold text-slate-800 dark:text-slate-200 text-xs">Autonomous Agent & Copilot</h4>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    I can explain concepts, answer questions, or <strong>execute tools directly on your behalf</strong> (cleaning, scraping leads, Causal EDA, code exports).
+                <div>
+                  <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">
+                    How can I assist your workflow today?
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-1 max-w-[240px]">
+                    Autonomous agent with real mathematical solvers, live web scraping, and vector synthesis.
                   </p>
                 </div>
-
-                <div className="grid gap-1.5 pt-2 px-2 text-left">
+                <div className="grid grid-cols-1 gap-1.5 w-full pt-1">
                   {suggestedQuestions.map((q, i) => (
                     <button
                       key={i}
-                      onClick={() => sendMessage(q.label)}
-                      className="flex items-center justify-between gap-2 w-full p-2 text-[11px] font-medium rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60 hover:border-cyan-400 dark:hover:border-cyan-500 text-slate-700 dark:text-slate-300 transition hover:bg-cyan-50/30 dark:hover:bg-cyan-950/20"
+                      onClick={() => handleSend(q.label.replace(/^[^a-zA-Z0-9]+/, "").trim())}
+                      className="text-left px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition border border-slate-200 dark:border-slate-750 flex items-center justify-between group cursor-pointer"
                     >
                       <span className="truncate">{q.label}</span>
-                      {q.action ? (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-100 dark:bg-cyan-900/50 text-cyan-700 dark:text-cyan-300 font-bold shrink-0">
-                          ACT
-                        </span>
-                      ) : (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0">
-                          ASK
-                        </span>
-                      )}
+                      <ArrowRight size={11} className="opacity-0 group-hover:opacity-100 text-indigo-400 transition" />
                     </button>
                   ))}
                 </div>
@@ -391,105 +584,80 @@ export default function AssistantWidget() {
             {messages.map((msg, i) => (
               <div
                 key={i}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
+                {msg.role === "assistant" && (
+                  <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+                    <Bot size={13} />
+                  </div>
+                )}
                 <div
-                  className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-[11px] leading-relaxed shadow-xs ${
+                  className={`max-w-[85%] rounded-2xl p-3 leading-relaxed ${
                     msg.role === "user"
-                      ? "bg-indigo-600 text-white rounded-br-none"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none border border-slate-200/80 dark:border-slate-700/80"
+                      ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-md rounded-tr-xs"
+                      : "bg-slate-100 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-750 rounded-tl-xs"
                   }`}
                 >
-                  <div className="flex items-center gap-1.5 mb-1 opacity-70 text-[9px] font-semibold">
-                    {msg.role === "user" ? <User size={11} /> : <Bot size={11} />}
-                    <span>{msg.role === "user" ? "You" : "DataForge Copilot"}</span>
-                    {msg.cached && (
-                      <span className="ml-auto text-emerald-500 font-mono text-[9px]">⚡ Zero-Token Instant</span>
-                    )}
-                  </div>
-                  <div className="chat-markdown font-sans [&_p]:mb-2 last:[&_p]:mb-0 [&_strong]:font-bold [&_em]:italic [&_ul]:my-2 [&_ul]:ml-4 [&_ul]:list-disc [&_ol]:my-2 [&_ol]:ml-4 [&_ol]:list-decimal [&_li]:my-0.5 [&_a]:text-cyan-600 [&_a]:underline [&_code]:rounded [&_code]:bg-slate-200 [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[10px] dark:[&_code]:bg-slate-700 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-slate-900 [&_pre]:p-2 [&_pre]:text-slate-100 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_blockquote]:my-2 [&_blockquote]:border-l-2 [&_blockquote]:border-cyan-500 [&_blockquote]:pl-2 [&_table]:my-2 [&_table]:w-full [&_table]:text-left [&_th]:border [&_th]:border-slate-300 [&_th]:bg-slate-200 [&_th]:px-2 [&_th]:py-1 [&_td]:border [&_td]:border-slate-300 [&_td]:px-2 [&_td]:py-1 dark:[&_th]:border-slate-600 dark:[&_th]:bg-slate-700 dark:[&_td]:border-slate-600">
-                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} components={markdownComponents}>{formatMathMarkdown(msg.content)}</ReactMarkdown>
+                  <div className="prose prose-xs dark:prose-invert max-w-none text-[11.5px] leading-relaxed">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm, remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                      components={markdownComponents}
+                    >
+                      {formatMathMarkdown(msg.content)}
+                    </ReactMarkdown>
                   </div>
 
-                  {/* Interactive Action Confirmation & Execution Cards */}
                   {msg.action_card && (
-                    <div className="mt-2.5 rounded-xl border p-2.5 text-[10px] space-y-2">
-                      {msg.action_card.type === "feature_navigation" ? (
-                        <div className="rounded-xl bg-gradient-to-r from-indigo-500/10 to-cyan-500/10 border border-cyan-500/30 p-2.5 space-y-2">
-                          <div className="flex items-center gap-1.5 font-bold text-cyan-600 dark:text-cyan-400">
-                            <Compass size={13} className="text-cyan-500" />
-                            <span>{msg.action_card.title || "Feature Navigation"}</span>
-                          </div>
-                          <p className="text-[10px] text-slate-600 dark:text-slate-300">
-                            Click below to jump directly to this workspace:
-                          </p>
-                          <div className="pt-1">
-                            <button
-                              onClick={() => router.push(msg.action_card.route_link)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold transition shadow-xs cursor-pointer text-[10px]"
-                            >
-                              <span>{msg.action_card.action_label || msg.action_card.route_label || "Open Workspace"}</span>
-                              <ArrowRight size={11} />
-                            </button>
-                          </div>
-                        </div>
-                      ) : msg.action_card.type === "action_proposal" ? (
-                        <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-2.5 space-y-2">
-                          <div className="flex items-center gap-1.5 font-bold text-amber-500">
-                            <Sparkles size={12} className="animate-pulse" />
-                            <span>Action Proposal: {msg.action_card.action_label}</span>
-                          </div>
-                          <p className="text-[10px] text-slate-600 dark:text-slate-300">
-                            {msg.action_card.impact}
-                          </p>
+                    <div className="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-700/80 space-y-2">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-indigo-400">
+                        <span>{msg.action_card.title || "Recommended Action"}</span>
+                        {msg.action_card.type === "proposal" && (
+                          <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px]">
+                            Approval Required
+                          </span>
+                        )}
+                      </div>
+
+                      {msg.action_card.type === "proposal" ? (
+                        <div className="rounded-xl bg-slate-900/60 p-2.5 border border-slate-700/50 space-y-2">
+                          <p className="text-[11px] text-slate-300">{msg.action_card.description}</p>
                           {msg.action_card.preview && (
-                            <div className="rounded-lg bg-white/60 p-2 text-[10px] dark:bg-slate-900/40">
-                              <div className="font-bold text-slate-700 dark:text-slate-200">Preview: {msg.action_card.preview.summary}</div>
-                              <div className="mt-1 text-slate-500 dark:text-slate-400">Impact: {msg.action_card.preview.impact} · Confirmation: {msg.action_card.preview.requires_confirmation ? "required" : "not required"}</div>
-                            </div>
+                            <pre className="text-[10px] font-mono bg-slate-950 p-2 rounded-lg overflow-x-auto text-cyan-300">
+                              {JSON.stringify(msg.action_card.preview, null, 2)}
+                            </pre>
                           )}
                           <div className="flex items-center gap-2 pt-1">
                             <button
                               onClick={() => handlePreviewProposal(msg.action_card, i)}
                               disabled={isStreaming}
-                              className="px-2.5 py-1 rounded-lg bg-white/70 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold hover:bg-white dark:hover:bg-slate-700 transition"
+                              className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-200 font-bold hover:bg-slate-700 transition"
                             >
-                              Preview Impact
+                              Preview
                             </button>
                             <button
                               onClick={() => handleExecuteProposal(msg.action_card)}
                               disabled={isStreaming}
-                              className="px-3 py-1 rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold transition shadow-xs"
+                              className="px-3 py-1 rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold transition"
                             >
-                              ✓ Confirm & Execute
-                            </button>
-                            <button
-                              onClick={() => {
-                                setMessages((prev) => [
-                                  ...prev,
-                                  { role: "assistant", content: "Action cancelled. Let me know if you would like to do something else." }
-                                ]);
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 transition"
-                            >
-                              Cancel
+                              ✓ Execute
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="rounded-lg bg-cyan-950/20 border border-cyan-500/30 p-2 space-y-1.5">
-                          <div className="flex items-center gap-1.5 font-bold text-cyan-400">
-                            <CheckCircle2 size={12} className="text-emerald-400" />
-                            <span>Action Completed Autonomously</span>
+                        <div className="rounded-xl bg-cyan-950/20 border border-cyan-500/30 p-2.5 space-y-1.5">
+                          <div className="flex items-center gap-1.5 font-bold text-cyan-300">
+                            <CheckCircle2 size={13} className="text-emerald-400" />
+                            <span>Action Ready</span>
                           </div>
                           {msg.action_card.route_link && (
                             <div className="flex gap-2 pt-1">
                               <button
                                 onClick={() => router.push(msg.action_card.route_link)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600 text-white font-bold hover:bg-cyan-500 transition cursor-pointer"
+                                className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-cyan-600 text-white font-bold hover:bg-cyan-500 transition cursor-pointer"
                               >
                                 <span>Open {msg.action_card.route_label || "Studio"}</span>
-                                <ArrowRight size={10} />
+                                <ArrowRight size={11} />
                               </button>
                             </div>
                           )}
@@ -503,20 +671,20 @@ export default function AssistantWidget() {
 
             {isStreaming && (
               <div className="flex items-center gap-2 text-slate-400 text-xs py-1">
-                <Loader2 size={12} className="animate-spin text-cyan-500" />
-                <span className="text-[10px]">Copilot analyzing & executing...</span>
+                <Loader2 size={13} className="animate-spin text-cyan-400" />
+                <span className="text-[11px]">Copilot thinking & solving...</span>
               </div>
             )}
 
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Bar */}
-          <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+          {/* INPUT BAR */}
+          <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                sendMessage();
+                handleSend();
               }}
               className="flex items-center gap-2"
             >
@@ -525,18 +693,19 @@ export default function AssistantWidget() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask or command: 'Clean my data', 'Scrape leads'..."
-                className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="flex-1 rounded-2xl border border-slate-200 dark:border-slate-750 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
                 disabled={isStreaming}
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isStreaming}
-                className="p-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white disabled:opacity-40 transition shadow-sm"
+                className="p-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white disabled:opacity-40 transition shadow-md cursor-pointer"
               >
-                <Send size={13} />
+                <Send size={14} />
               </button>
             </form>
           </div>
+
         </div>
       )}
     </>

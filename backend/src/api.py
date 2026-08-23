@@ -1216,6 +1216,25 @@ def get_assistant_token_stats():
     }
 
 
+@app.get("/api/assistant/sessions")
+def api_get_assistant_sessions():
+    """List all saved chat sessions with summary metadata."""
+    return {"sessions": assistant_engine.list_sessions()}
+
+
+@app.get("/api/assistant/sessions/{session_id}")
+def api_get_assistant_session_history(session_id: str):
+    """Retrieve full message history for a specific chat session."""
+    return {"session_id": session_id, "messages": assistant_engine.get_session_history(session_id)}
+
+
+@app.delete("/api/assistant/sessions/{session_id}")
+def api_delete_assistant_session(session_id: str):
+    """Delete a chat session."""
+    deleted = assistant_engine.delete_session(session_id)
+    return {"status": "deleted" if deleted else "not_found", "session_id": session_id}
+
+
 @app.post("/api/context/update")
 def api_update_context(payload: dict = Body(...)):
     session_id = payload.get("session_id", "default")
