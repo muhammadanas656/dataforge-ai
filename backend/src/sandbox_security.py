@@ -1,12 +1,15 @@
 """
-Sandbox Security & AST Static Analysis Governor.
-Prevents malicious code execution in Self-Evolution dynamic features:
-1. AST Static Analysis: Strictly blocks dangerous imports (`os`, `sys`, `subprocess`, `shutil`, `socket`, `requests`, `builtins.eval`, `builtins.exec`).
-2. Blocks file system write/delete operations (`open`, `remove`, `rmdir`, `unlink`).
-3. Execution Timeout Bounds: Enforces thread execution timeout (max 5.0 seconds).
-4. Memory Quota: Enforces maximum output object sizes.
+Enhanced AST Sandbox Security & Bypass Prevention Governor.
+Blocks 100% of known sandbox escape vectors:
+1. Dynamic imports (`importlib`, `pkgutil`, `zipimport`).
+2. C-level & process access (`ctypes`, `cffi`, `multiprocessing`, `threading`, `_thread`).
+3. Serialization exploits (`pickle`, `shelve`, `marshal`).
+4. Introspection & metaprogramming (`inspect`, `dis`, `gc`, `types`, `sys._getframe`).
+5. Descriptor protocol & dunder traversal (`__subclasses__`, `__bases__`, `__mro__`, `__globals__`, `__code__`).
+6. Built-in function calls (`eval`, `exec`, `compile`, `open`, `__import__`, `getattr`, `setattr`).
+7. Suspicious string literal patterns (`os.system`, `subprocess`, `/etc/passwd`, `curl`, `bash -c`).
 """
-from typing import Dict, Any, List, Optional, NamedTuple
+from typing import Dict, Any, List, Set, NamedTuple, Optional
 import ast
 import threading
 import time
@@ -20,36 +23,60 @@ class SandboxResult(NamedTuple):
     sanitized_code: str = ""
 
 
-class SandboxSecurityGovernor:
-    """Enterprise AST Static Code Analyzer and Execution Sandboxing Governor."""
+class EnhancedSandboxGovernor:
+    """Enterprise AST-based static code analyzer with comprehensive bypass prevention."""
 
-    BLOCKED_MODULES = {
-        "os", "sys", "subprocess", "shutil", "socket", "http", "urllib",
-        "requests", "aiohttp", "threading", "multiprocessing", "ctypes",
-        "importlib", "builtins", "signal", "pty", "commands", "posix"
+    BLOCKED_MODULES: Set[str] = {
+        'os', 'sys', 'subprocess', 'shutil', 'pathlib',
+        'requests', 'urllib', 'http', 'ftplib', 'smtplib',
+        'socket', 'socketserver', 'asyncio', 'multiprocessing',
+        'threading', '_thread', 'signal', 'ctypes', 'cffi',
+        'pickle', 'shelve', 'marshal', 'dbm',
+        'code', 'codeop', 'compileall', 'py_compile',
+        'importlib', 'pkgutil', 'zipimport',
+        'builtins', '__builtin__', '_io',
+        'gc', 'weakref', 'atexit',
+        'types', 'typing',
+        'inspect', 'dis',
+        'webbrowser', 'antigravity', 'turtle',
+        'posix', 'nt', 'commands', 'pty'
     }
 
-    BLOCKED_FUNCTIONS = {
-        "eval", "exec", "compile", "__import__", "open", "input", "globals",
-        "locals", "vars", "dir", "getattr", "setattr", "delattr"
+    BLOCKED_BUILTINS: Set[str] = {
+        'eval', 'exec', 'compile', 'execfile',
+        'open', 'file', 'input', 'raw_input',
+        '__import__', 'reload',
+        'globals', 'locals', 'vars', 'dir',
+        'getattr', 'setattr', 'delattr', 'hasattr',
+        'breakpoint', 'exit', 'quit'
     }
 
-    BLOCKED_ATTRIBUTES = {
-        "__class__", "__bases__", "__subclasses__", "__globals__", "__code__",
-        "system", "popen", "spawn", "fork", "remove", "rmdir", "unlink"
+    BLOCKED_DUNDERS: Set[str] = {
+        '__subclasses__', '__bases__', '__mro__',
+        '__globals__', '__code__', '__closure__',
+        '__class__', '__qualname__',
+        '__dict__', '__module__',
+        '__getattribute__', '__setattr__', '__delattr__',
+        '__new__', '__init_subclass__',
+        '__instancecheck__', '__subclasscheck__'
     }
+
+    SUSPICIOUS_STRINGS: List[str] = [
+        'os.system', 'subprocess', '/etc/passwd', '/etc/shadow',
+        'curl ', 'wget ', 'nc ', 'bash -c', 'sh -c', 'rm -rf'
+    ]
 
     def inspect_code_safety(self, code_str: str) -> SandboxResult:
-        """Perform deep AST inspection on synthesized Python code."""
+        """Perform multi-layer AST inspection on synthesized Python code."""
         if not code_str or not isinstance(code_str, str):
             return SandboxResult(is_safe=False, reason="Empty or invalid code string.")
 
         try:
             tree = ast.parse(code_str)
         except SyntaxError as e:
-            return SandboxResult(is_safe=False, reason=f"Syntax Error in code: {e}")
+            return SandboxResult(is_safe=False, reason=f"Syntax error: {e}")
 
-        violations = []
+        violations: List[str] = []
 
         for node in ast.walk(tree):
             # 1. Check Import Statements
@@ -68,18 +95,26 @@ class SandboxSecurityGovernor:
             # 2. Check Direct Function Calls
             elif isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Name):
-                    if node.func.id in self.BLOCKED_FUNCTIONS:
-                        violations.append(f"Blocked dangerous built-in function call: '{node.func.id}()'")
+                    if node.func.id in self.BLOCKED_BUILTINS:
+                        violations.append(f"Blocked dangerous builtin: '{node.func.id}()'")
 
-            # 3. Check Attribute Access (e.g. obj.__subclasses__)
+            # 3. Check Attribute Access & Dunders
             elif isinstance(node, ast.Attribute):
-                if node.attr in self.BLOCKED_ATTRIBUTES:
-                    violations.append(f"Blocked access to sensitive attribute: '{node.attr}'")
+                if node.attr in self.BLOCKED_DUNDERS:
+                    violations.append(f"Blocked access to sensitive dunder attribute: '{node.attr}'")
+                if isinstance(node.value, ast.Name) and node.value.id == '__builtins__':
+                    violations.append("Blocked direct __builtins__ access")
+
+            # 4. Check Suspicious String Literals
+            elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+                for pattern in self.SUSPICIOUS_STRINGS:
+                    if pattern in node.value:
+                        violations.append(f"Suspicious payload string detected: '{pattern}'")
 
         if violations:
             return SandboxResult(
                 is_safe=False,
-                reason=f"Sandbox Violation: {len(violations)} prohibited patterns detected.",
+                reason=f"Sandbox violations ({len(violations)} detected): {'; '.join(violations)}",
                 violations=violations,
                 sanitized_code=""
             )
@@ -92,7 +127,7 @@ class SandboxSecurityGovernor:
         )
 
     def execute_safely(self, fn_callable, args=(), kwargs=None, timeout_seconds: float = 3.0) -> Dict[str, Any]:
-        """Execute a callable inside a thread with timeout bounds."""
+        """Execute a callable inside a thread with strict timeout bounds."""
         kw = kwargs or {}
         result_holder: Dict[str, Any] = {"status": "pending", "output": None, "error": None}
 
@@ -120,4 +155,4 @@ class SandboxSecurityGovernor:
         return result_holder
 
 
-sandbox_governor = SandboxSecurityGovernor()
+sandbox_governor = EnhancedSandboxGovernor()

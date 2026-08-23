@@ -79,7 +79,7 @@ def test_self_evolution_engine_rejects_malicious_code_compilation():
 # =====================================================================
 
 def test_realtime_search_telemetry_records_and_snapshots_events():
-    """Verify search telemetry records live site queries and outputs snapshots."""
+    """Verify search telemetry records live site queries and outputs snapshots with privacy preservation."""
     target_site = "https://news.ycombinator.com/item?id=3847291"
     
     event = search_telemetry.record_search_event(
@@ -88,14 +88,15 @@ def test_realtime_search_telemetry_records_and_snapshots_events():
         tokens_found=145,
         bytes_downloaded=54200
     )
-    assert event["url"] == target_site
+    assert "url_hash" in event
+    assert event["url_hash"].startswith("sha256:")
     assert event["tokens_found"] == 145
 
     snapshot = search_telemetry.get_telemetry_snapshot()
     assert snapshot["status"] == "online"
     assert snapshot["total_sites_searched"] >= 1
     assert len(snapshot["recent_search_feed"]) >= 1
-    assert any(target_site in ev["url"] for ev in snapshot["recent_search_feed"])
+    assert any("url_hash" in ev for ev in snapshot["recent_search_feed"])
 
 
 # =====================================================================

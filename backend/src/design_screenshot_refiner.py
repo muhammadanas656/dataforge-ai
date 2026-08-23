@@ -94,55 +94,104 @@ class DesignScreenshotRefiner:
             recommendations=recommendations
         )
 
+    MAX_ITERATIONS: int = 10
+    MIN_IMPROVEMENT: float = 0.5
+    STAGNATION_LIMIT: int = 3
+    TARGET_SCORE: float = 90.0
+    FALLBACK_THRESHOLD: float = 75.0
+
     def run_iterative_refinement_loop(
         self,
         initial_svg: str,
         field_of_interest: str = "fintech_glassmorphism",
         target_score: float = 90.0,
-        max_rounds: int = 3
+        max_rounds: int = 5
     ) -> Dict[str, Any]:
-        """Execute continuous visual refinement loop until design quality score >= 90.0."""
+        """Execute bounded visual refinement loop with stagnation & infinite loop termination safeguards."""
         from src.svg_normalizer import svg_normalizer
+        from src.svg_fitness import svg_fitness_evaluator
         palette = self.THEME_PALETTES.get(field_of_interest, self.THEME_PALETTES["fintech_glassmorphism"])
 
         current_svg = initial_svg
         history = []
-        round_num = 0
+        stagnation_count = 0
+        previous_score = 0.0
+        max_limit = min(max_rounds, self.MAX_ITERATIONS)
 
-        while round_num < max_rounds:
-            round_num += 1
+        for iteration in range(1, max_limit + 1):
             audit = self.audit_visual_design(current_svg, theme=field_of_interest)
+            fitness = svg_fitness_evaluator.evaluate(current_svg)
+            composite_score = round(0.5 * audit.overall_visual_score + 0.5 * fitness.overall, 1)
+
             history.append({
-                "round": round_num,
-                "score": audit.overall_visual_score,
+                "round": iteration,
+                "score": composite_score,
                 "contrast": audit.contrast_ratio,
                 "wcag_aaa": audit.wcag_aaa_compliant,
-                "recommendations": audit.recommendations
+                "recommendations": audit.recommendations,
+                "svg": current_svg
             })
 
-            if audit.overall_visual_score >= target_score:
-                break
+            # Check if target reached
+            if composite_score >= target_score:
+                final_norm = svg_normalizer.normalize(current_svg, asset_name=f"{field_of_interest}_icon")
+                return {
+                    "status": "target_reached",
+                    "field_of_interest": field_of_interest,
+                    "rounds_executed": iteration,
+                    "final_score": composite_score,
+                    "target_threshold": target_score,
+                    "final_svg": current_svg,
+                    "react_jsx": final_norm.react_jsx,
+                    "vue_component": final_norm.vue_component,
+                    "refinement_history": history
+                }
+
+            # Check for stagnation
+            improvement = composite_score - previous_score
+            if iteration > 1 and improvement < self.MIN_IMPROVEMENT:
+                stagnation_count += 1
+                if stagnation_count >= self.STAGNATION_LIMIT:
+                    logger.warning(f"[design_refiner] Stagnation detected at round {iteration}. Terminating safely.")
+                    best = max(history, key=lambda h: h["score"])
+                    final_norm = svg_normalizer.normalize(best["svg"], asset_name=f"{field_of_interest}_icon")
+                    return {
+                        "status": "stagnation_fallback",
+                        "field_of_interest": field_of_interest,
+                        "rounds_executed": iteration,
+                        "final_score": best["score"],
+                        "target_threshold": target_score,
+                        "final_svg": best["svg"],
+                        "react_jsx": final_norm.react_jsx,
+                        "vue_component": final_norm.vue_component,
+                        "refinement_history": history
+                    }
+            else:
+                stagnation_count = 0
+
+            previous_score = composite_score
 
             # Apply visual optimizations for next round
             normalized = svg_normalizer.normalize(current_svg, asset_name=f"{field_of_interest}_icon")
             optimized_svg = normalized.raw_svg
-            # Inject primary & accent colors and clean stroke from target field theme
             if 'stroke=' not in optimized_svg:
                 optimized_svg = optimized_svg.replace('<svg', f'<svg stroke="{palette["secondary"]}" stroke-width="2"', 1)
             optimized_svg = re.sub(r'fill="[^"]+"', f'fill="{palette["primary"]}"', optimized_svg, count=1)
             current_svg = optimized_svg
 
-        final_normalized = svg_normalizer.normalize(current_svg, asset_name=f"{field_of_interest}_icon")
+        best = max(history, key=lambda h: h["score"])
+        final_norm = svg_normalizer.normalize(best["svg"], asset_name=f"{field_of_interest}_icon")
+        status = "acceptable_fallback" if best["score"] >= self.FALLBACK_THRESHOLD else "below_threshold"
 
         return {
-            "status": "optimized" if history[-1]["score"] >= target_score else "completed",
+            "status": status,
             "field_of_interest": field_of_interest,
-            "rounds_executed": round_num,
-            "final_score": history[-1]["score"],
+            "rounds_executed": max_limit,
+            "final_score": best["score"],
             "target_threshold": target_score,
-            "final_svg": current_svg,
-            "react_jsx": final_normalized.react_jsx,
-            "vue_component": final_normalized.vue_component,
+            "final_svg": best["svg"],
+            "react_jsx": final_norm.react_jsx,
+            "vue_component": final_norm.vue_component,
             "refinement_history": history
         }
 

@@ -24,6 +24,41 @@ class RealtimeSearchTelemetry:
         self.total_tokens_discovered = 0
         self._lock = threading.Lock()
 
+    def anonymize_url(self, url: str) -> Dict[str, Any]:
+        """Anonymize target URL into privacy-safe metadata without leaking user queries."""
+        from urllib.parse import urlparse
+        import hashlib
+        try:
+            parsed = urlparse(url)
+            url_hash = hashlib.sha256(url.encode('utf-8')).hexdigest()[:12]
+            domain = parsed.netloc.lower()
+            tld = domain.split('.')[-1] if '.' in domain else 'com'
+
+            categories = {
+                'documentation': ['docs.', 'developer.', 'api.', 'readthedocs', 'github.com/docs'],
+                'research': ['arxiv.', 'research.', 'scholar.', 'ieee.', 'acm.'],
+                'tech_news': ['news.', 'techcrunch', 'hackernews', 'ycombinator', 'medium'],
+                'ecommerce': ['shop.', 'store.', 'amazon', 'shopify', 'stripe'],
+                'cloud': ['aws.', 'azure.', 'gcp.', 'cloudflare', 'digitalocean']
+            }
+            cat = 'general_web'
+            for c_name, patterns in categories.items():
+                if any(p in domain for p in patterns):
+                    cat = c_name
+                    break
+
+            path_depth = len([p for p in parsed.path.split('/') if p])
+
+            return {
+                "url_hash": f"sha256:{url_hash}",
+                "domain_category": cat,
+                "tld": tld,
+                "path_depth": path_depth,
+                "is_https": parsed.scheme == "https"
+            }
+        except Exception:
+            return {"url_hash": "sha256:anonymized", "domain_category": "web", "tld": "com", "path_depth": 1, "is_https": True}
+
     def record_search_event(
         self,
         url: str,
@@ -31,22 +66,25 @@ class RealtimeSearchTelemetry:
         tokens_found: int = 0,
         bytes_downloaded: int = 0
     ) -> Dict[str, Any]:
-        """Record live event for an individual target website."""
+        """Record privacy-preserving live event for an individual target website."""
         with self._lock:
             now_iso = datetime.now().isoformat()
             kb = round(bytes_downloaded / 1024.0, 2)
             self.total_bandwidth_kb += kb
             self.total_tokens_discovered += tokens_found
 
+            anon_meta = self.anonymize_url(url)
             event_data = {
-                "url": url,
+                "url_hash": anon_meta["url_hash"],
+                "domain_category": anon_meta["domain_category"],
+                "path_depth": anon_meta["path_depth"],
                 "stage": stage,
                 "tokens_found": tokens_found,
                 "bandwidth_kb": kb,
                 "timestamp": now_iso
             }
 
-            self.active_searches[url] = event_data
+            self.active_searches[anon_meta["url_hash"]] = event_data
             self.history.append(event_data)
             self.total_sites_searched += 1
 
