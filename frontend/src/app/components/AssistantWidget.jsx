@@ -414,7 +414,26 @@ export default function AssistantWidget() {
                   {/* Interactive Action Confirmation & Execution Cards */}
                   {msg.action_card && (
                     <div className="mt-2.5 rounded-xl border p-2.5 text-[10px] space-y-2">
-                      {msg.action_card.type === "action_proposal" ? (
+                      {msg.action_card.type === "feature_navigation" ? (
+                        <div className="rounded-xl bg-gradient-to-r from-indigo-500/10 to-cyan-500/10 border border-cyan-500/30 p-2.5 space-y-2">
+                          <div className="flex items-center gap-1.5 font-bold text-cyan-600 dark:text-cyan-400">
+                            <Compass size={13} className="text-cyan-500" />
+                            <span>{msg.action_card.title || "Feature Navigation"}</span>
+                          </div>
+                          <p className="text-[10px] text-slate-600 dark:text-slate-300">
+                            Click below to jump directly to this workspace:
+                          </p>
+                          <div className="pt-1">
+                            <button
+                              onClick={() => router.push(msg.action_card.route_link)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold transition shadow-xs cursor-pointer text-[10px]"
+                            >
+                              <span>{msg.action_card.action_label || msg.action_card.route_label || "Open Workspace"}</span>
+                              <ArrowRight size={11} />
+                            </button>
+                          </div>
+                        </div>
+                      ) : msg.action_card.type === "action_proposal" ? (
                         <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-2.5 space-y-2">
                           <div className="flex items-center gap-1.5 font-bold text-amber-500">
                             <Sparkles size={12} className="animate-pulse" />

@@ -576,8 +576,8 @@ class AssistantEngine:
                 return self.execute_read_tool("get_dataset_profile", {"dataset_id": dataset_id}, session_id)
             return {"status": "info", "response": "Please select or upload a dataset first."}
 
-        # If query is an informational question (e.g. "what is...", "how does...", "explain..."), let it pass to Semantic Cache/RAG
-        is_informational = any(q.startswith(w) for w in ["what is", "how do", "how does", "why does", "explain", "can you explain", "tell me about", "what are"])
+        # If query is an informational question (e.g. "what is...", "how does...", "explain...", "how can I..."), let it pass to How-To / Semantic Cache
+        is_informational = any(q.startswith(w) for w in ["what is", "how do", "how does", "how can", "how to", "show me how", "where do", "why does", "explain", "can you explain", "tell me about", "what are"])
         if is_informational and not any(k in q for k in ["please scrape", "run autopilot now", "execute tool", "audit now"]):
             return None
 
@@ -727,8 +727,23 @@ class AssistantEngine:
                 "context": ctx_dict
             }
 
-        # Step 1.5: Adaptive Conceptual Explanations (ELI5 / Simplified Analogies)
+        # Step 1.2: How-To Queries & Relative Redirection Action Cards
         from src.adaptive_explanations import adaptive_explainer
+        if adaptive_explainer.is_how_to_query(query):
+            how_to_res = adaptive_explainer.get_how_to_guide(query)
+            if how_to_res:
+                self._record_turn(session_id, query, how_to_res["response"])
+                return {
+                    "response": how_to_res["response"],
+                    "status": "success",
+                    "action_card": how_to_res["action_card"],
+                    "cached": True,
+                    "tokens_saved": 450,
+                    "total_tokens_saved": self.total_tokens_saved + 450,
+                    "context": ctx_dict
+                }
+
+        # Step 1.5: Adaptive Conceptual Explanations (ELI5 / Simplified Analogies)
         if adaptive_explainer.is_beginner_query(query):
             matched_key = adaptive_explainer._match_topic(query)
             if matched_key:

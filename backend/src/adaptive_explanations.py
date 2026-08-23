@@ -1,11 +1,12 @@
 """
-Adaptive Explanation & Conceptual Analogy Engine.
-Provides 3-tier explanation complexity:
+Adaptive Explanation, Conceptual Analogy & Feature How-To Navigation Engine.
+Provides:
 1. Beginner / ELI5: Crystal-clear everyday analogies, metaphors, and no-jargon mental models.
 2. Intermediate: Business value, operational workflows, and practical applications.
 3. Advanced: Mathematical formulations, precision matrix inversion, and algorithmic proofs.
+4. How-To Feature Navigation: Step-by-step simple guides with direct relative route redirection cards.
 """
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import re
 from src.utils import logger
 
@@ -98,9 +99,109 @@ CONCEPTUAL_KNOWLEDGE_BASE: Dict[str, Dict[str, str]] = {
     }
 }
 
+# Step-by-Step Practical How-To Knowledge Base with Dynamic Navigation
+HOW_TO_KNOWLEDGE_BASE: Dict[str, Dict[str, Any]] = {
+    "cleaning": {
+        "title": "How to Clean and Prepare Your Dataset",
+        "route_link": "/clean",
+        "route_label": "Open Cleaning Studio",
+        "steps": [
+            "1. Click the **Cleaning Studio** button below to open the data preparation workspace.",
+            "2. Choose your uploaded dataset from the top selector.",
+            "3. Click **'🚀 Run 1-Click Auto-Pilot'** to automatically fill missing blanks, fix text formatting, and remove corrupted outliers.",
+            "4. Review the visual Before/After quality comparison score and download your clean CSV."
+        ],
+        "tip": "💡 *Pro-Tip:* Auto-Pilot uses mathematical MICE imputation so you never lose valuable rows!"
+    },
+    "seo_audit": {
+        "title": "How to Audit Website SEO & Core Web Vitals",
+        "route_link": "/intel",
+        "route_label": "Open Web & SEO Studio",
+        "steps": [
+            "1. Click the **Web & SEO Studio** button below.",
+            "2. Enter any public website URL (e.g. `https://stripe.com`).",
+            "3. Click **'🔍 Run 360° SEO Audit'**.",
+            "4. View your overall score (0-100), heading structure ($H_1-H_6$), and Core Web Vitals page speed simulation."
+        ],
+        "tip": "💡 *Pro-Tip:* All audits run through an enterprise SSRF security shield to guarantee private network safety!"
+    },
+    "svg_studio": {
+        "title": "How to Generate Custom Vector SVG Icons & React Code",
+        "route_link": "/intel",
+        "route_label": "Open SVG Vector Studio",
+        "steps": [
+            "1. Click the **SVG Vector Studio** button below (select the ✨ SVG Studio tab).",
+            "2. Type what you want to create (e.g. *'data pipeline'*, *'security shield'*, *'neural network'*).",
+            "3. Click **'✨ Generate Vector Asset'** to create your icon.",
+            "4. Toggle sizes (16px to 96px), pick your favorite theme color, and click **'Download .jsx'** or **'Copy Code'**."
+        ],
+        "tip": "💡 *Pro-Tip:* Generated code includes typed React JSX with Tailwind CSS support ready to paste into your app!"
+    },
+    "lead_scraper": {
+        "title": "How to Scrape Niche Business Leads",
+        "route_link": "/intel",
+        "route_label": "Open Web Intelligence Studio",
+        "steps": [
+            "1. Click the **Web Intelligence Studio** button below.",
+            "2. Enter your target industry or niche (e.g. *'Robotics'*, *'Solar Energy'*).",
+            "3. Click **'🎯 Start Autonomous Lead Crawl'**.",
+            "4. The system crawls public listings, de-obfuscates Cloudflare protected emails, and saves a ready-to-use CSV dataset."
+        ],
+        "tip": "💡 *Pro-Tip:* Respects domain `robots.txt` rules and polite rate-limits automatically."
+    },
+    "causal_dag": {
+        "title": "How to Discover Causal DAG Drivers in Your Data",
+        "route_link": "/eda",
+        "route_label": "Open Causal EDA Studio",
+        "steps": [
+            "1. Click the **Causal EDA Studio** button below.",
+            "2. Select your cleaned dataset.",
+            "3. Click **'🌳 Generate Causal DAG'**.",
+            "4. Explore the interactive visual graph showing true direct causes versus misleading coincidences."
+        ],
+        "tip": "💡 *Pro-Tip:* Uses regularized precision matrix inversion to mathematically eliminate spurious correlations!"
+    },
+    "triz_invention": {
+        "title": "How to Resolve Inventive Contradictions with TRIZ",
+        "route_link": "/niche",
+        "route_label": "Open Strategic Invention Studio",
+        "steps": [
+            "1. Click the **Strategic Invention Studio** button below.",
+            "2. Select the parameter you want to **Improve** (e.g. *Speed*, *Accuracy*).",
+            "3. Select the parameter you want to **Avoid Worsening** (e.g. *Cost*, *Complexity*).",
+            "4. Click **'💡 Resolve Contradiction'** to view 40 proven engineering principles and modern AI architecture moats."
+        ],
+        "tip": "💡 *Pro-Tip:* Also models modern AI tradeoffs like Mixture-of-Experts (MoE) and Speculative Decoding!"
+    },
+    "scenario_simulation": {
+        "title": "How to Run Monte Carlo Risk & Fat-Tail Simulations",
+        "route_link": "/niche",
+        "route_label": "Open Scenario Planner",
+        "steps": [
+            "1. Click the **Scenario Planner** button below.",
+            "2. Enter your business numbers (Price, Units sold, Marketing CAC, Monthly costs).",
+            "3. Choose the **Fat-Tail (Student-t)** distribution model.",
+            "4. View probability of profit, Value at Risk (VaR 95%), and 12-month black swan projections."
+        ],
+        "tip": "💡 *Pro-Tip:* Fat-tail modeling protects your business against rare market crashes and sudden viral growth."
+    },
+    "code_export": {
+        "title": "How to Export Standalone Python Scripts",
+        "route_link": "/export",
+        "route_label": "Open Code Exporter",
+        "steps": [
+            "1. Click the **Code Exporter** button below.",
+            "2. Select your dataset pipeline.",
+            "3. Click **'📦 Generate Standalone Python Script'**.",
+            "4. Copy or download the single `.py` file to reproduce your entire data pipeline anywhere with 0 dependencies."
+        ],
+        "tip": "💡 *Pro-Tip:* Every exported script is self-contained with scikit-learn and pandas transforms."
+    }
+}
+
 
 class AdaptiveExplanationEngine:
-    """Delivers multi-tier conceptual explanations adapted to user skill levels."""
+    """Delivers multi-tier conceptual explanations and step-by-step how-to navigation."""
 
     def explain(self, topic: str, user_level: str = "beginner") -> str:
         """Retrieve explanation formatted specifically for the requested audience."""
@@ -123,6 +224,61 @@ class AdaptiveExplanationEngine:
         q = query.lower()
         triggers = ["simply", "simple", "eli5", "explain like i'm", "for beginner", "easy words", "what is", "analogy", "how does", "mean"]
         return any(t in q for t in triggers)
+
+    def is_how_to_query(self, query: str) -> bool:
+        """Check if user query is asking how to do something or use a feature."""
+        q = query.lower()
+        triggers = ["how can i", "how do i", "how to", "how do we", "where do i", "how does it work", "steps to", "guide for", "show me how"]
+        return any(t in q for t in triggers)
+
+    def get_how_to_guide(self, query: str) -> Optional[Dict[str, Any]]:
+        """Match query to a practical step-by-step guide with redirection link."""
+        q = query.lower().replace("_", " ")
+        matched_key = None
+
+        if "clean" in q or "autopilot" in q or "imput" in q or "dataset" in q:
+            matched_key = "cleaning"
+        elif "seo" in q or "audit web" in q or "vitals" in q:
+            matched_key = "seo_audit"
+        elif "svg" in q or "icon" in q or "vector" in q or "graphic" in q:
+            matched_key = "svg_studio"
+        elif "scrape" in q or "lead" in q or "email" in q or "contact" in q:
+            matched_key = "lead_scraper"
+        elif "causal" in q or "dag" in q or "eda" in q or "cause" in q:
+            matched_key = "causal_dag"
+        elif "triz" in q or "invent" in q or "contradiction" in q:
+            matched_key = "triz_invention"
+        elif "scenario" in q or "monte carlo" in q or "risk" in q or "fat tail" in q or "simulat" in q:
+            matched_key = "scenario_simulation"
+        elif "export" in q or "python" in q or "code" in q or "script" in q:
+            matched_key = "code_export"
+
+        if not matched_key or matched_key not in HOW_TO_KNOWLEDGE_BASE:
+            return None
+
+        guide = HOW_TO_KNOWLEDGE_BASE[matched_key]
+        steps_text = "\n".join(guide["steps"])
+        formatted_response = (
+            f"🎯 **{guide['title']}**\n\n"
+            f"Here are the simple step-by-step instructions:\n\n"
+            f"{steps_text}\n\n"
+            f"{guide['tip']}\n\n"
+            f"👉 Click the button below to go straight to this workspace!"
+        )
+
+        return {
+            "title": guide["title"],
+            "route_link": guide["route_link"],
+            "route_label": guide["route_label"],
+            "response": formatted_response,
+            "action_card": {
+                "type": "feature_navigation",
+                "route_link": guide["route_link"],
+                "route_label": guide["route_label"],
+                "title": guide["title"],
+                "action_label": f"👉 {guide['route_label']}"
+            }
+        }
 
     def _match_topic(self, query: str) -> Optional[str]:
         """Match query text to knowledge base keys."""
