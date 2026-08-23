@@ -139,6 +139,10 @@ class DistillationEngine:
                 except Exception:
                     pass
 
+    def record_training_pair(self, task_type: str, input_text: str, output_text: str, confidence: float = 1.0, source: str = "web"):
+        """Record input-output text training pair with provenance."""
+        self.record(task_type, {"query": input_text, "source": source}, output_text, confidence=confidence)
+
     def get_stats(self):
         return {
             "tasks_trained": list(self.models.keys()),
@@ -149,3 +153,4 @@ class DistillationEngine:
 
 
 distiller = DistillationEngine()
+distillation_engine = distiller

@@ -109,6 +109,11 @@ class AssistantRAG:
     def index_dataset_profile(self, dataset_id: str, profile: Dict[str, Any]):
         """Index a dataset profile in memory."""
         self.dataset_profiles[dataset_id] = profile
+
+    def add_documents(self, collection: str, documents: List[Dict[str, Any]]):
+        """Dynamically add documents to live RAG memory."""
+        for doc in documents:
+            self.docs.append(doc)
     
     def retrieve(self, query: str, collection: str = "all", top_k: int = 4) -> List[Dict[str, Any]]:
         """
@@ -120,20 +125,21 @@ class AssistantRAG:
         
         candidates = []
         
-        # 1. Search Documentation
-        if collection in ["all", "docs"]:
+        # 1. Search Documentation & Ingested Knowledge
+        if collection in ["all", "docs", "knowledge"]:
             for d in self.docs:
-                text = f"{d['title']} {' '.join(d['tags'])} {d['content']}"
+                tags_list = d.get('tags', [])
+                text = f"{d.get('title', '')} {' '.join(tags_list)} {d.get('content', '')}"
                 doc_tokens = self._tokenize(text)
                 overlap = sum(1 for t in query_tokens if t in doc_tokens)
-                tag_boost = sum(2 for t in query_tokens if t in d['tags'])
+                tag_boost = sum(2 for t in query_tokens if t in tags_list)
                 score = overlap + tag_boost
                 if score > 0:
                     candidates.append({
                         "source": "documentation",
-                        "id": d["id"],
-                        "title": d["title"],
-                        "content": d["content"],
+                        "id": d.get("id"),
+                        "title": d.get("title", "Ingested Document"),
+                        "content": d.get("content", ""),
                         "score": score
                     })
         

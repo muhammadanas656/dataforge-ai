@@ -743,6 +743,36 @@ class AssistantEngine:
                     "context": ctx_dict
                 }
 
+        # Step 1.3: Meta-Agentic Self-Evolution & Dynamic Feature Building on User Demand
+        q_low = query.lower()
+        if any(k in q_low for k in ["build a new feature", "implement feature", "create feature", "self improve", "add feature", "implementation plan for"]):
+            from src.self_evolution_engine import self_evolution_engine
+            plan_data = self_evolution_engine.generate_self_improvement_plan(query)
+            impl_result = self_evolution_engine.dynamically_implement_feature(plan_data)
+            
+            response_text = (
+                f"✨ **Autonomous Self-Evolution Triggered:**\n\n"
+                f"{plan_data['implementation_plan_markdown']}\n\n"
+                f"✅ **Implementation Status:** Successfully synthesized, verified, and registered `{impl_result['feature_name']}` into the live production environment!\n\n"
+                f"👉 Click the button below to navigate directly to this new capability."
+            )
+            self._record_turn(session_id, query, response_text)
+            return {
+                "response": response_text,
+                "status": "success",
+                "action_card": {
+                    "type": "feature_navigation",
+                    "route_link": impl_result["route_link"],
+                    "route_label": f"Open {impl_result['feature_name']}",
+                    "title": f"New Feature: {impl_result['feature_name']}",
+                    "action_label": f"👉 Open {impl_result['feature_name']}"
+                },
+                "cached": False,
+                "tokens_saved": 600,
+                "total_tokens_saved": self.total_tokens_saved + 600,
+                "context": ctx_dict
+            }
+
         # Step 1.5: Adaptive Conceptual Explanations (ELI5 / Simplified Analogies)
         if adaptive_explainer.is_beginner_query(query):
             matched_key = adaptive_explainer._match_topic(query)

@@ -121,6 +121,7 @@ class MultimodalCausalEngine:
             "feature_count": n,
             "sample_count": len(numeric_df),
             "nodes": cols,
+            "edges": edges,
             "causal_edges": edges
         }
 
