@@ -1417,4 +1417,55 @@ def api_web_deep_audit(payload: dict = Body(...)):
     return webradar_suite.deep_audit_domain_or_url(target, max_pages=max_pages)
 
 
+@app.post("/api/web/svg-audit")
+def api_web_svg_audit(payload: dict = Body(...)):
+    """Audit SVG vector markup for security, accessibility, and path optimization."""
+    svg_code = payload.get("svg_code", "")
+    if not svg_code:
+        raise HTTPException(status_code=400, detail="Missing 'svg_code'")
+    from src.svg_design_studio import svg_studio
+    return svg_studio.audit_svg(svg_code)
+
+
+@app.post("/api/web/svg-generate")
+def api_web_svg_generate(payload: dict = Body(...)):
+    """Generate production-ready SVG vector icons with React and Vue component code."""
+    query = payload.get("query", "data pipeline")
+    primary_color = payload.get("primary_color", "#06b6d4")
+    from src.svg_design_studio import svg_studio
+    return svg_studio.generate_vector_asset(query, primary_color=primary_color)
+
+
+@app.post("/api/web/svg-extract")
+def api_web_svg_extract(payload: dict = Body(...)):
+    """Extract and audit all SVGs from raw HTML."""
+    html = payload.get("html", "")
+    url = payload.get("url", "https://example.com")
+    if not html:
+        raise HTTPException(status_code=400, detail="Missing 'html'")
+    from src.svg_design_studio import svg_studio
+    return svg_studio.extract_svgs_from_html(html, source_url=url)
+
+
+@app.post("/api/compliance/robots-check")
+async def api_compliance_robots_check(payload: dict = Body(...)):
+    """Check target URL crawling permissions against domain robots.txt."""
+    url = payload.get("url", "")
+    if not url:
+        raise HTTPException(status_code=400, detail="Missing 'url'")
+    from src.compliance import legal_compliance
+    res = await legal_compliance.check_robots_txt(url)
+    return res.to_dict()
+
+
+@app.post("/api/workflows/execute")
+async def api_workflows_execute(payload: dict = Body(...)):
+    """Execute cross-studio workflow chaining Tabular, Web, and Invention actions."""
+    steps = payload.get("steps", [])
+    if not steps:
+        raise HTTPException(status_code=400, detail="Missing 'steps'")
+    from src.studio_orchestrator import studio_orchestrator
+    return await studio_orchestrator.execute_workflow(steps)
+
+
 

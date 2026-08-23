@@ -442,6 +442,72 @@ class AssistantEngine:
                 logger.error(f"[copilot_tool] Design extractor error: {e}")
                 return {"tool_executed": "extract_design_tokens", "status": "error", "response": f"⚠️ Design extraction error: {str(e)}"}
 
+        elif tool_name == "audit_svg":
+            svg_code = args.get("svg_code", "<svg viewBox='0 0 24 24'></svg>")
+            try:
+                from src.svg_design_studio import svg_studio
+                res = svg_studio.audit_svg(svg_code)
+                return {
+                    "tool_executed": "audit_svg",
+                    "status": "success",
+                    "response": (
+                        f"🛡️ **SVG Vector Quality & Security Audit Completed!**\n\n"
+                        f"- **Quality Score:** `{res.get('overall_quality_score')}/100`\n"
+                        f"- **Security Status:** `{res.get('security_status')}`\n"
+                        f"- **Accessibility (a11y):** `{res.get('accessibility')}`\n"
+                        f"- **Path Complexity:** `{res.get('path_elements_count')} elements`\n"
+                        f"- **Issues Detected:** {', '.join(res.get('issues', ['None']))}"
+                    ),
+                    "action_card": {
+                        "type": "svg_audited",
+                        "score": res.get("overall_quality_score"),
+                        "security": res.get("security_status")
+                    }
+                }
+            except Exception as e:
+                logger.error(f"[copilot_tool] SVG audit error: {e}")
+                return {"tool_executed": "audit_svg", "status": "error", "response": f"⚠️ SVG audit error: {str(e)}"}
+
+        elif tool_name == "generate_svg_asset":
+            query_str = args.get("query", "data pipeline stream")
+            try:
+                from src.svg_design_studio import svg_studio
+                res = svg_studio.generate_vector_asset(query_str)
+                return {
+                    "tool_executed": "generate_svg_asset",
+                    "status": "success",
+                    "response": (
+                        f"✨ **Custom Vector Icon & Component Generated!**\n\n"
+                        f"- **Asset Name:** `{res.get('asset_name')}`\n"
+                        f"- **Description:** `{res.get('title')}`\n\n"
+                        f"```jsx\n{res.get('react_jsx')}\n```\n\n"
+                        f"Ready to import directly into your React / Tailwind application."
+                    ),
+                    "action_card": {
+                        "type": "svg_asset_ready",
+                        "name": res.get("asset_name"),
+                        "svg": res.get("raw_svg")
+                    }
+                }
+            except Exception as e:
+                logger.error(f"[copilot_tool] SVG generation error: {e}")
+                return {"tool_executed": "generate_svg_asset", "status": "error", "response": f"⚠️ SVG generation error: {str(e)}"}
+
+        elif tool_name == "execute_studio_workflow":
+            workflow_steps = args.get("steps", [])
+            try:
+                from src.studio_orchestrator import studio_orchestrator
+                res = asyncio.run(studio_orchestrator.execute_workflow(workflow_steps)) if not asyncio.iscoroutinefunction(studio_orchestrator.execute_workflow) else studio_orchestrator.execute_workflow(workflow_steps)
+                return {
+                    "tool_executed": "execute_studio_workflow",
+                    "status": "success",
+                    "response": f"⚡ **Cross-Studio Workflow Executed Successfully!**\n\nExecuted {len(workflow_steps)} steps across Tabular, Web & Design, and Strategic Invention studios.",
+                    "action_card": {"type": "workflow_completed", "steps_count": len(workflow_steps)}
+                }
+            except Exception as e:
+                logger.error(f"[copilot_tool] Workflow execution error: {e}")
+                return {"tool_executed": "execute_studio_workflow", "status": "error", "response": f"⚠️ Workflow error: {str(e)}"}
+
         return {"status": "error", "response": f"Unknown tool: {tool_name}"}
 
     def execute_read_tool(self, tool_name: str, args: Dict[str, Any], session_id: str = "default") -> Dict[str, Any]:

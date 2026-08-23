@@ -226,7 +226,20 @@ class SEOAuditor:
         }
 
     def audit_url(self, url: str, timeout: float = 10.0) -> Dict[str, Any]:
-        """Fetch live URL and perform audit."""
+        """Fetch live URL and perform audit with SSRF protection."""
+        from src.security import ssrf_validator
+        val = ssrf_validator.validate_url(url)
+        if not val.valid:
+            return {
+                "url": url,
+                "error": f"Security Check Failed: {val.reason}",
+                "overall_seo_score": 0,
+                "actionable_recommendations": [f"Target URL is restricted by SSRF protection: {val.reason}"],
+                "meta": {},
+                "headings": {"score": 0, "issues": [f"Blocked: {val.reason}"]},
+                "export_artifacts": {"meta_tags_html": "", "markdown_report": ""}
+            }
+
         try:
             headers = {"User-Agent": "DataForge-SiteLens/2.0 (SEO & Accessibility Crawler)"}
             resp = httpx.get(url, timeout=timeout, headers=headers, follow_redirects=True)

@@ -21,6 +21,20 @@ class WebRadarSuite:
         """Perform unified multi-vector deep audit on a domain or URL."""
         url = target if target.startswith("http") else f"https://{target}"
         
+        # 0. SSRF Security Check
+        from src.security import ssrf_validator
+        val = ssrf_validator.validate_url(url)
+        if not val.valid:
+            return {
+                "target": target,
+                "resolved_url": url,
+                "status": "blocked",
+                "seo_audit": {"overall_seo_score": 0, "error": f"Blocked by SSRF protection: {val.reason}"},
+                "design_lens": {"palette": design_lens.DEFAULT_FALLBACK_PALETTE, "error": val.reason},
+                "lead_intelligence": {"leads_extracted": 0, "records": []},
+                "summary": {"seo_score": 0, "leads_found_count": 0, "wcag_compliance": "Fail", "dominant_font": "Inter"}
+            }
+
         # 1. Fetch main page HTML
         html = ""
         fetch_error = None

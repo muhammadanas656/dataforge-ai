@@ -57,6 +57,15 @@ TOOL_SPECS: Dict[str, ToolSpec] = {
     ),
     "run_deep_web_audit": ToolSpec(
         "run_deep_web_audit", "Unified multi-vector deep audit: SEO, Design Tokens, and Lead Harvesting.", "web", True, "medium", (), True
+    ),
+    "audit_svg": ToolSpec(
+        "audit_svg", "Audit SVG vector markup for security risks, accessibility, and path efficiency.", "design", False, "low", (), True
+    ),
+    "generate_svg_asset": ToolSpec(
+        "generate_svg_asset", "Generate custom vector SVG icons with React and Vue component code.", "design", False, "low", (), True
+    ),
+    "execute_studio_workflow": ToolSpec(
+        "execute_studio_workflow", "Execute chained multi-studio workflows across tabular, web, and invention studios.", "workflows", True, "high", (), True
     )
 }
 

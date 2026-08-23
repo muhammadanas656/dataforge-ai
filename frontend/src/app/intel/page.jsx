@@ -24,7 +24,7 @@ import {
 import { authFetch } from "../api";
 
 export default function IntelPage() {
-  const [activeTab, setActiveTab] = useState("seo_design"); // "seo_design" | "competitors"
+  const [activeTab, setActiveTab] = useState("seo_design"); // "seo_design" | "svg_studio" | "competitors"
   const [list, setList] = useState([]);
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
@@ -34,6 +34,11 @@ export default function IntelPage() {
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditResult, setAuditResult] = useState(null);
   const [copiedToken, setCopiedToken] = useState(false);
+
+  // SVG Studio State
+  const [svgPrompt, setSvgPrompt] = useState("data pipeline stream");
+  const [svgResult, setSvgResult] = useState(null);
+  const [isGeneratingSvg, setIsGeneratingSvg] = useState(false);
 
   const job = useJob("intel_track", { url: "", name: "" }, { autoStart: false });
 
@@ -75,6 +80,26 @@ export default function IntelPage() {
     }
   };
 
+  const handleGenerateSvg = async () => {
+    if (!svgPrompt.trim() || isGeneratingSvg) return;
+    setIsGeneratingSvg(true);
+    try {
+      const res = await authFetch("/api/web/svg-generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: svgPrompt.trim(), primary_color: "#06b6d4" }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSvgResult(data);
+      }
+    } catch (err) {
+      console.error("SVG generation failed:", err);
+    } finally {
+      setIsGeneratingSvg(false);
+    }
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     setCopiedToken(true);
@@ -91,7 +116,7 @@ export default function IntelPage() {
             Web Intelligence, SEO & Design Studio
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            360° Technical & Content SEO Auditing, DesignLens UI/UX Token Extraction, and Autonomous Lead Crawlers
+            360° Technical SEO, DesignLens UI/UX Token Extraction, SVG Vector Studio, and SSRF-Hardened Crawlers
           </p>
         </div>
         <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -104,6 +129,16 @@ export default function IntelPage() {
             }`}
           >
             🔍 SEO & DesignLens
+          </button>
+          <button
+            onClick={() => setActiveTab("svg_studio")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              activeTab === "svg_studio"
+                ? "bg-white dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+            }`}
+          >
+            ✨ SVG Vector Studio
           </button>
           <button
             onClick={() => setActiveTab("competitors")}
@@ -369,6 +404,104 @@ export default function IntelPage() {
                     </div>
                   </div>
                 </div>
+              </Card>
+            </div>
+          )}
+        </div>
+      ) : activeTab === "svg_studio" ? (
+        /* SVG Vector & Design Asset Studio Tab */
+        <div className="space-y-6">
+          <Card
+            title="✨ Generative SVG Vector & Icon Component Studio"
+            info="Synthesizes accessible vector graphics, React JSX components, and Vue 3 icons from natural language queries."
+          >
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <div className="relative flex-1 min-w-[280px]">
+                  <Palette size={14} className="absolute left-3 top-3 text-slate-400" />
+                  <input
+                    value={svgPrompt}
+                    onChange={(e) => setSvgPrompt(e.target.value)}
+                    placeholder="Describe vector asset (e.g. data pipeline, telemetry pulse, security shield, neural network)"
+                    className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-3 text-xs focus:ring-2 focus:ring-cyan-500 text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={handleGenerateSvg}
+                  disabled={isGeneratingSvg || !svgPrompt.trim()}
+                >
+                  {isGeneratingSvg ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
+                  {isGeneratingSvg ? "Synthesizing Vector..." : "Generate Vector Asset"}
+                </Button>
+              </div>
+
+              {isGeneratingSvg && (
+                <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center gap-2 text-cyan-700 dark:text-cyan-300 text-xs">
+                  <Loader2 className="animate-spin text-cyan-500" size={14} />
+                  <span>Synthesizing viewBox paths, React JSX camelCase bindings, and auditing security...</span>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Generated SVG & Design Code Artifacts */}
+          {svgResult && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Visual Preview */}
+                <Card title="🎨 Vector Visual Preview">
+                  <div className="flex flex-col items-center justify-center p-6 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                    <div
+                      className="w-20 h-20 text-cyan-400 flex items-center justify-center p-2 rounded-2xl bg-cyan-950/30 border border-cyan-800/50"
+                      dangerouslySetInnerHTML={{ __html: svgResult.raw_svg }}
+                    />
+                    <span className="text-xs font-bold text-slate-200">{svgResult.asset_name}</span>
+                    <Badge tone="good">{svgResult.title}</Badge>
+                  </div>
+                </Card>
+
+                {/* Vector Quality & Security Audit */}
+                <Card title="🛡️ Vector Quality & a11y Audit" className="md:col-span-2">
+                  <div className="space-y-3 text-xs">
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">Security Status</span>
+                      <Badge tone={svgResult.audit?.security_status === "Clean" ? "good" : "danger"}>
+                        {svgResult.audit?.security_status}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">Accessibility (a11y)</span>
+                      <Badge tone="good">{svgResult.audit?.accessibility}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">Quality Score</span>
+                      <span className="font-bold text-cyan-600 dark:text-cyan-400 font-mono">
+                        {svgResult.audit?.overall_quality_score}/100
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Ready-to-Copy React Component Code */}
+              <Card
+                title="⚛️ Production React JSX Component"
+                actions={
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => copyToClipboard(svgResult.react_jsx)}
+                  >
+                    {copiedToken ? <CheckCircle2 size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                    <span>{copiedToken ? "Copied!" : "Copy React Component"}</span>
+                  </Button>
+                }
+              >
+                <pre className="p-3 rounded-xl bg-slate-900 text-slate-100 text-xs font-mono overflow-x-auto">
+                  <code>{svgResult.react_jsx}</code>
+                </pre>
               </Card>
             </div>
           )}

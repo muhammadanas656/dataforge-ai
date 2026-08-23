@@ -125,6 +125,6 @@ def test_design_lens_w3c_figma_tokens_format():
 def test_webradar_handles_corrupted_and_unreachable_urls_gracefully():
     """Verify WebRadar handles network failures and returns default design system without crashing."""
     res = webradar_suite.deep_audit_domain_or_url("nonexistent-domain-xyz-99999.invalid")
-    assert res["status"] in ["partial_failure", "success"]
+    assert res["status"] in ["partial_failure", "success", "blocked"]
     assert "palette" in res["design_lens"]
     assert res["seo_audit"]["overall_seo_score"] == 0
