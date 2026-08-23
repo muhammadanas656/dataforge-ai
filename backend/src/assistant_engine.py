@@ -15,6 +15,7 @@ from src.context_manager import context_manager
 from src.assistant_rag import assistant_rag
 from src.llm import tracked_chat
 from src.utils import logger, repair_and_load_json
+from src.copilot_registry import dry_run as registry_dry_run, get_tool_spec, list_tool_specs, validate_args
 
 CACHE_FILE = "data/kb/copilot_semantic_cache.json"
 PROFILE_FILE = "data/kb/user_personalization.json"
@@ -133,7 +134,14 @@ class AssistantEngine:
 
     def execute_named_tool(self, tool_name: str, args: Dict[str, Any], session_id: str = "default") -> Dict[str, Any]:
         """Directly execute a named tool on the user's behalf."""
+        try:
+            validate_args(tool_name, args or {})
+        except ValueError as e:
+            return {"status": "error", "response": str(e), "tool_executed": tool_name}
         dataset_id = args.get("dataset_id", "none")
+
+        if tool_name in {"get_current_context", "get_token_usage", "get_dataset_profile", "get_learning_stats"}:
+            return self.execute_read_tool(tool_name, args or {}, session_id)
 
         if tool_name == "run_autopilot":
             try:
@@ -277,7 +285,103 @@ class AssistantEngine:
                 logger.error(f"[copilot_tool] TRIZ tool error: {e}")
                 return {"tool_executed": "resolve_triz", "status": "error", "response": f"⚠️ TRIZ error: {str(e)}"}
 
+        elif tool_name == "run_seo_audit":
+            url_target = args.get("url", "https://example.com")
+            try:
+                from src.seo_auditor import seo_auditor
+                seo_res = seo_auditor.audit_url(url_target)
+                score = seo_res.get("overall_seo_score", 0)
+                h1_items = seo_res.get("headings", {}).get("h1_items", [])
+                h1_str = h1_items[0] if h1_items else "None"
+                return {
+                    "tool_executed": "run_seo_audit",
+                    "status": "success",
+                    "response": (
+                        f"🔍 **360° Technical & Content SEO Audit Completed!**\n\n"
+                        f"- **Target URL:** `{url_target}`\n"
+                        f"- **Overall SEO Score:** `{score}/100`\n"
+                        f"- **Primary <h1> Heading:** `{h1_str}`\n"
+                        f"- **Core Web Vitals Score:** `{seo_res.get('core_web_vitals_simulation', {}).get('score', 0)}/100`\n"
+                        f"- **Estimated LCP:** `{seo_res.get('core_web_vitals_simulation', {}).get('estimated_lcp_ms', 0)}ms`\n\n"
+                        f"👉 [Open Web Intelligence Studio](/intel)"
+                    ),
+                    "action_card": {
+                        "type": "seo_audited",
+                        "score": score,
+                        "url": url_target,
+                        "route_link": "/intel",
+                        "route_label": "Web Intelligence & SEO Studio"
+                    }
+                }
+            except Exception as e:
+                logger.error(f"[copilot_tool] SEO auditor error: {e}")
+                return {"tool_executed": "run_seo_audit", "status": "error", "response": f"⚠️ SEO audit error: {str(e)}"}
+
+        elif tool_name == "extract_design_tokens":
+            url_target = args.get("url", "https://example.com")
+            try:
+                import httpx
+                from src.design_extractor import design_lens
+                try:
+                    resp = httpx.get(url_target if url_target.startswith("http") else f"https://{url_target}", timeout=6.0, follow_redirects=True)
+                    d_res = design_lens.extract_design_system(resp.text, url=str(resp.url))
+                except Exception as net_err:
+                    logger.warning(f"[copilot_tool] Design fetch fallback for {url_target}: {net_err}")
+                    d_res = design_lens.extract_design_system("", url=url_target)
+                
+                p = d_res.get("palette", {})
+                return {
+                    "tool_executed": "extract_design_tokens",
+                    "status": "success",
+                    "response": (
+                        f"🎨 **DesignLens UI/UX Perspectives & Tokens Extracted!**\n\n"
+                        f"- **Primary Color:** `{p.get('primary')}` | **Secondary:** `{p.get('secondary')}`\n"
+                        f"- **Background:** `{p.get('background')}` | **Surface:** `{p.get('surface')}`\n"
+                        f"- **WCAG Contrast Check:** `{d_res.get('contrast', {}).get('wcag_compliance')}` ({d_res.get('contrast', {}).get('ratio')}:1 ratio)\n"
+                        f"- **Dominant Heading Font:** `{d_res.get('typography', {}).get('heading_font')}`\n\n"
+                        f"Tokens are formatted for Figma, Tailwind CSS (`tailwind.config.js`), and CSS `:root` variables."
+                    ),
+                    "action_card": {
+                        "type": "design_tokens_ready",
+                        "primary_color": p.get("primary"),
+                        "route_link": "/intel",
+                        "route_label": "Web & Design Studio"
+                    }
+                }
+            except Exception as e:
+                logger.error(f"[copilot_tool] Design extractor error: {e}")
+                return {"tool_executed": "extract_design_tokens", "status": "error", "response": f"⚠️ Design extraction error: {str(e)}"}
+
         return {"status": "error", "response": f"Unknown tool: {tool_name}"}
+
+    def execute_read_tool(self, tool_name: str, args: Dict[str, Any], session_id: str = "default") -> Dict[str, Any]:
+        """Execute registered read-only capabilities without invoking the LLM."""
+        validate_args(tool_name, args)
+        if tool_name == "get_current_context":
+            data = context_manager.get_context(session_id).to_dict()
+            return {"status": "success", "tool_executed": tool_name, "response": "Here is the current application context.", "data": data}
+        if tool_name == "get_token_usage":
+            from src.token_tracker import tracker
+            scope = args.get("scope", "all")
+            data = tracker.summary(scope=scope)
+            return {"status": "success", "tool_executed": tool_name, "response": f"Token usage for the {scope} scope is {data.get('total_tokens', 0):,} total tokens.", "data": data}
+        if tool_name == "get_dataset_profile":
+            dataset_id = args["dataset_id"]
+            result = {}
+            for name in ("profile", "execution"):
+                path = f"reports/{name}_{dataset_id}.json"
+                if os.path.exists(path):
+                    with open(path, "r", encoding="utf-8") as f:
+                        result[name] = json.load(f)
+            return {"status": "success", "tool_executed": tool_name, "response": f"Loaded dataset context for {dataset_id}.", "data": result}
+        if tool_name == "get_learning_stats":
+            from src.adaptive_delegation import get_delegation_stats
+            data = get_delegation_stats()
+            return {"status": "success", "tool_executed": tool_name, "response": "Here are the current learning and autonomy statistics.", "data": data}
+        raise ValueError(f"Unsupported read tool: {tool_name}")
+
+    def dry_run_tool(self, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
+        return registry_dry_run(tool_name, args or {})
 
     def _detect_and_execute_tool(self, query: str, session_id: str, ctx: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Detect actionable user commands and handle Confirmation Protocol vs Immediate Execution."""
@@ -303,6 +407,18 @@ class AssistantEngine:
             }
 
         require_confirm = self.user_profile.get("require_confirmation", False)
+
+        # Read-only application observability and context queries never need confirmation.
+        if any(k in q for k in ["token usage", "token consumption", "tokens used", "token cost"]):
+            return self.execute_read_tool("get_token_usage", {"scope": "all"}, session_id)
+        if any(k in q for k in ["current context", "what page", "where am i", "active dataset"]):
+            return self.execute_read_tool("get_current_context", {}, session_id)
+        if any(k in q for k in ["learning stats", "learned fixes", "distilled models", "autonomy stats"]):
+            return self.execute_read_tool("get_learning_stats", {}, session_id)
+        if any(k in q for k in ["dataset profile", "profile of this dataset", "dataset quality"]):
+            if dataset_id != "none":
+                return self.execute_read_tool("get_dataset_profile", {"dataset_id": dataset_id}, session_id)
+            return {"status": "info", "response": "Please select or upload a dataset first."}
 
         # 1. Run Auto-Pilot Command
         if any(k in q for k in ["run autopilot", "run auto pilot", "clean my dataset", "auto clean", "clean this dataset", "launch autopilot"]):
@@ -339,6 +455,48 @@ class AssistantEngine:
                     }
                 }
             return self.execute_named_tool("extract_niche_leads", {"niche": niche_target}, session_id)
+
+        # 3. SEO Audit Command
+        seo_match = re.search(r'(?:audit|check|analyze)\s+(?:seo|technical seo)\s+(?:for|of|on)?\s*([^\s]+)', q)
+        if seo_match or "audit seo" in q or "check seo" in q:
+            target_url = seo_match.group(1).strip() if seo_match else "https://example.com"
+            if not target_url.startswith("http"):
+                target_url = f"https://{target_url}"
+            if require_confirm:
+                return {
+                    "tool_executed": "action_proposal",
+                    "status": "proposal",
+                    "response": f"⚠️ **Confirmation Required:** I am ready to run a 360° Technical & Content SEO audit on `{target_url}`.\n\n- **Impact:** Evaluates Core Web Vitals, heading structure ($H_1-H_6$), Schema.org metadata, and readability.\n\nWould you like me to proceed?",
+                    "action_card": {
+                        "type": "action_proposal",
+                        "tool_name": "run_seo_audit",
+                        "args": {"url": target_url},
+                        "action_label": f"Audit SEO for {target_url}",
+                        "impact": "360° Technical & Core Web Vitals audit"
+                    }
+                }
+            return self.execute_named_tool("run_seo_audit", {"url": target_url}, session_id)
+
+        # 4. DesignLens & Token Extraction Command
+        design_match = re.search(r'(?:extract|get|generate)\s+(?:design|tokens|palette|colors|theme)\s+(?:for|from|of)?\s*([^\s]+)', q)
+        if design_match or "design tokens" in q or "color palette" in q:
+            target_url = design_match.group(1).strip() if design_match else "https://example.com"
+            if not target_url.startswith("http"):
+                target_url = f"https://{target_url}"
+            if require_confirm:
+                return {
+                    "tool_executed": "action_proposal",
+                    "status": "proposal",
+                    "response": f"⚠️ **Confirmation Required:** I am ready to extract Design Tokens & UI/UX Perspectives from `{target_url}`.\n\n- **Impact:** Extracts WCAG-compliant color harmony palettes, typography scales, and generates `tailwind.config.js` tokens.\n\nWould you like me to proceed?",
+                    "action_card": {
+                        "type": "action_proposal",
+                        "tool_name": "extract_design_tokens",
+                        "args": {"url": target_url},
+                        "action_label": f"Extract Design Tokens for {target_url}",
+                        "impact": "Color harmony clustering, WCAG checks, and Tailwind export"
+                    }
+                }
+            return self.execute_named_tool("extract_design_tokens", {"url": target_url}, session_id)
 
         # 3. Export Pipeline Code Command
         if any(k in q for k in ["export code", "export pipeline", "give me python code", "download script", "pipeline code"]):

@@ -4,20 +4,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Database,
-  Wrench,
-  CheckSquare,
-  FileText,
-  BarChart3,
-  Compass,
+  DatabaseZap,
+  WandSparkles,
+  CircleCheckBig,
+  FileChartColumnIncreasing,
+  ChartNoAxesCombined,
+  Telescope,
   Radar,
-  Bell,
-  HelpCircle,
-  Brain,
-  Settings,
-  Sparkles,
+  BellRing,
+  ScanLine,
+  BrainCircuit,
+  SlidersHorizontal,
+  ChartSpline,
+  Orbit,
   Menu,
   X,
+  Palette,
+  Sparkles,
+  Code2
 } from "lucide-react";
 import { ThemeToggle } from "./theme";
 import { useDataset } from "./DatasetContext";
@@ -26,35 +30,36 @@ import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
 const NAV_GROUPS = [
   {
-    label: "Data Pipeline",
+    label: "📊 Tabular Data Studio",
     items: [
       { href: "/", label: "Overview", icon: LayoutDashboard },
-      { href: "/data", label: "Raw Data", icon: Database },
-      { href: "/cleaning", label: "Cleaning Studio", icon: Wrench },
-      { href: "/cleaned", label: "Cleaned Data", icon: CheckSquare },
-      { href: "/report", label: "Quality Report", icon: FileText },
+      { href: "/data", label: "Raw Data & Schema", icon: DatabaseZap },
+      { href: "/cleaning", label: "MICE Cleaning Studio", icon: WandSparkles },
+      { href: "/cleaned", label: "Cleaned Data & Audit", icon: CircleCheckBig },
+      { href: "/report", label: "Quality Scorecard", icon: FileChartColumnIncreasing },
+      { href: "/eda", label: "Causal DAG & EDA", icon: ChartNoAxesCombined },
     ],
   },
   {
-    label: "Analysis",
+    label: "🌐 Web & Design Studio",
     items: [
-      { href: "/eda", label: "EDA Studio", icon: BarChart3 },
+      { href: "/intel", label: "WebRadar & SEO Audit", icon: Radar },
+      { href: "/research", label: "Market Growth & Leads", icon: Telescope },
+      { href: "/alerts", label: "Domain & Trend Alerts", icon: BellRing },
     ],
   },
   {
-    label: "Research & Market",
+    label: "💡 Strategic Invention Hub",
     items: [
-      { href: "/research", label: "Niche Research", icon: Compass },
-      { href: "/intel", label: "Competitor Intel", icon: Radar },
-      { href: "/alerts", label: "Market Alerts", icon: Bell },
+      { href: "/explain", label: "TRIZ Contradiction Matrix", icon: Sparkles },
     ],
   },
   {
-    label: "System & Autonomy",
+    label: "⚡ Autonomy & Systems",
     items: [
-      { href: "/learning", label: "Learning Activity", icon: Brain },
-      { href: "/explain", label: "How It Works", icon: HelpCircle },
-      { href: "/settings", label: "Settings", icon: Settings },
+      { href: "/learning", label: "Learning & Adaptation", icon: BrainCircuit },
+      { href: "/tokens", label: "Token Observatory", icon: ChartSpline },
+      { href: "/settings", label: "Settings & BYOK", icon: SlidersHorizontal },
     ],
   },
 ];
@@ -69,10 +74,10 @@ export default function Sidebar() {
       {/* Mobile Top Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex h-14 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/95 shadow-xs">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-sm">
-            <Sparkles size={14} />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-sm">
+            <Orbit size={14} />
           </div>
-          <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <span className="font-display text-sm font-bold tracking-[0.08em] text-slate-900 dark:text-slate-100">
             DataForge AI
           </span>
         </div>
@@ -103,10 +108,10 @@ export default function Sidebar() {
         <div className="flex h-14 items-center justify-between border-b border-slate-100 px-4 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 text-white shadow-soft">
-              <Sparkles size={16} />
+              <Orbit size={16} />
             </div>
             <div className="leading-tight">
-              <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100">
+              <span className="font-display text-sm font-bold tracking-[0.08em] text-slate-900 dark:text-slate-100">
                 DataForge AI
               </span>
               <p className="text-[10px] text-slate-500 font-medium">Enterprise Studio</p>

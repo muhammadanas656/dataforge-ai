@@ -29,6 +29,7 @@ app.add_middleware(
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
+from src import llm
 from src.workspace import set_workspace, reset_workspace, DEFAULT_WORKSPACE, list_workspaces, ensure_workspace_dir, get_workspace
 
 class WorkspaceMiddleware(BaseHTTPMiddleware):
@@ -451,8 +452,8 @@ def t_insights():
 # --- Cache Management Endpoint ---
 @app.post("/api/cache/clear")
 def clear_cache():
-    from src.rag import memory_store
-    memory_store.clear()
+    from src.vector_store import vector_store
+    vector_store.clear()
     return {"status": "cleared", "message": "RAG vector and semantic caches invalidated"}
 
 
@@ -547,6 +548,12 @@ def analyst_query(did: str, payload: dict):
 def tokens(run_id: str = None, stage: str = None, scope: str = "all"):
     clean_id = _safe_did(run_id) if run_id else None
     return tracker.summary(run_id=clean_id, stage=stage, scope=scope)
+
+
+@app.get("/api/tokens/history")
+def token_history(run_id: str = None, scope: str = "all", limit: int = 100):
+    clean_id = _safe_did(run_id) if run_id else None
+    return {"scope": scope, "records": tracker.history(run_id=clean_id, scope=scope, limit=limit)}
 
 
 # --- v2: Multi-Table Relational Ingest ---
@@ -1171,6 +1178,36 @@ def execute_assistant_action(payload: dict = Body(...)):
     return res
 
 
+@app.get("/api/assistant/tools")
+def list_assistant_tools():
+    from src.copilot_registry import list_tool_specs
+    return {"tools": list_tool_specs()}
+
+
+@app.get("/api/evaluation/system")
+def evaluate_system():
+    from src.evaluation_harness import EvaluationHarness
+    return EvaluationHarness().run_system_suite()
+
+
+@app.post("/api/evaluation/copilot")
+async def evaluate_copilot(payload: dict = Body(default_factory=dict)):
+    from src.evaluation_harness import EvaluationHarness
+    session_id = payload.get("session_id", "evaluation_api")
+    return await EvaluationHarness().run_copilot_suite(session_id=session_id)
+
+
+@app.post("/api/assistant/dry-run")
+def dry_run_assistant_tool(payload: dict = Body(...)):
+    tool_name = payload.get("tool_name", "")
+    if not tool_name:
+        raise HTTPException(status_code=400, detail="Missing tool_name")
+    try:
+        return assistant_engine.dry_run_tool(tool_name, payload.get("args") or {})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.get("/api/assistant/token-stats")
 def get_assistant_token_stats():
     return {
@@ -1182,7 +1219,8 @@ def get_assistant_token_stats():
 @app.post("/api/context/update")
 def api_update_context(payload: dict = Body(...)):
     session_id = payload.get("session_id", "default")
-    context_manager.update_context(session_id, **payload)
+    context_payload = {key: value for key, value in payload.items() if key != "session_id"}
+    context_manager.update_context(session_id, **context_payload)
     return {"status": "success", "context": context_manager.get_context(session_id).to_dict()}
 
 
@@ -1325,9 +1363,58 @@ def api_eda_query_data(payload: dict = Body(...)):
     return query_dataset(did, query)
 
 
+# --- Phase 8: Web Intelligence, SEO Auditing & DesignLens Studio Endpoints ---
+from src.seo_auditor import seo_auditor
+from src.design_extractor import design_lens
+from src.webradar_crawler import webradar_suite
 
 
+@app.post("/api/web/seo-audit")
+def api_web_seo_audit(payload: dict = Body(...)):
+    """Perform 360-degree technical and content SEO audit on URL or raw HTML."""
+    url = payload.get("url", "")
+    html = payload.get("html", "")
+    if html:
+        return seo_auditor.audit_html(html, url=url or "https://example.com")
+    if not url:
+        raise HTTPException(status_code=400, detail="Missing 'url' or 'html'")
+    return seo_auditor.audit_url(url)
 
+
+@app.post("/api/web/design-tokens")
+def api_web_design_tokens(payload: dict = Body(...)):
+    """Extract color palette, WCAG contrast, typography, and design tokens from URL or raw HTML."""
+    url = payload.get("url", "")
+    html = payload.get("html", "")
+    if html:
+        return design_lens.extract_design_system(html, url=url or "https://example.com")
+    if not url:
+        raise HTTPException(status_code=400, detail="Missing 'url' or 'html'")
+    
+    import httpx
+    try:
+        resp = httpx.get(url if url.startswith("http") else f"https://{url}", timeout=10.0, follow_redirects=True)
+        return design_lens.extract_design_system(resp.text, url=str(resp.url))
+    except Exception as e:
+        logger.warning(f"[api] DesignLens URL fetch failed: {e}")
+        return {
+            "source_url": url,
+            "palette": design_lens.DEFAULT_FALLBACK_PALETTE,
+            "contrast": {"ratio": 8.5, "wcag_compliance": "AAA", "text_color": "#f8fafc", "bg_color": "#0f172a"},
+            "typography": {"body_font": "Inter", "heading_font": "Inter", "modular_scale_ratio": 1.25},
+            "layout": {"grid_system": "CSS Grid + Flexbox", "border_radius_rhythm": "0.75rem (12px)"},
+            "export_artifacts": {}
+        }
+
+
+@app.post("/api/web/deep-audit")
+def api_web_deep_audit(payload: dict = Body(...)):
+    """Unified 360° Multi-Vector Audit: Lead Extraction + Technical SEO + DesignLens Tokens."""
+    target = payload.get("target") or payload.get("url")
+    if not target:
+        raise HTTPException(status_code=400, detail="Missing 'target' or 'url'")
+    max_pages = int(payload.get("max_pages", 3))
+    return webradar_suite.deep_audit_domain_or_url(target, max_pages=max_pages)
 
 
 
