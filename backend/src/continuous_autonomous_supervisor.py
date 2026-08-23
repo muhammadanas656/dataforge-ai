@@ -110,6 +110,17 @@ def run_continuous_supervised_cycle(max_cycles: int = 3, delay_between_cycles_se
             }
         )
 
+        # 4. Periodic Model Self-Distillation (Every 20 cycles)
+        if cycle % 20 == 0:
+            try:
+                from src.distillation_engine import DistillationEngine
+                distiller = DistillationEngine()
+                for task_type in list(distiller.examples.keys()):
+                    distiller._try_distill(task_type)
+                print(f"  [Auto-Distillation] Model distillation triggered for {len(distiller.examples)} task types.")
+            except Exception as dist_err:
+                logger.warning(f"[supervisor] Auto-distillation pass: {dist_err}")
+
         cycle_duration = round(time.time() - cycle_start, 3)
         print(f"  [Parallel 5-Studio] All Studios Completed in {cycle_duration}s (Confidence: {epistemic['epistemic_confidence']:.2%}, Entropy: {epistemic['information_entropy_bits']} bits)")
         print(f"  [PASS] Cycle {cycle} Complete - ZERO REGRESSIONS / ZERO HALLUCINATIONS")

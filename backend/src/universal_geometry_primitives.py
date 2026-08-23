@@ -144,5 +144,44 @@ class UniversalGeometryPrimitives:
   <circle cx="0" cy="0" r="{r*0.35:.1f}" fill="#ffffff" filter="drop-shadow(0 0 14px {accent_color})"/>
 </g>"""
 
+    @staticmethod
+    def default_masterpiece_defs(theme_color: str = "#6366f1", accent_color: str = "#38bdf8") -> str:
+        """Synthesize rich, 5-stop physical lighting gradients, ambient rim-lights, and specular filters."""
+        return f"""<defs>
+    <linearGradient id="sky_ambient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="35%" stop-color="#0f172a"/>
+      <stop offset="70%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#312e81"/>
+    </linearGradient>
+    <linearGradient id="mesh_glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="{theme_color}"/>
+      <stop offset="50%" stop-color="{accent_color}"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <radialGradient id="sun_glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="30%" stop-color="{accent_color}"/>
+      <stop offset="70%" stop-color="{theme_color}" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_specular" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="{accent_color}" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="{theme_color}" stop-opacity="0.1"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="specularGlow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+      <feSpecularLighting in="blur" surfaceScale="5" specularConstant="1.2" specularExponent="20" lighting-color="#ffffff" result="spec">
+        <fePointLight x="400" y="100" z="300"/>
+      </feSpecularLighting>
+      <feComposite in="SourceGraphic" in2="spec" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
+    </filter>
+  </defs>"""
+
 
 geometry_primitives = UniversalGeometryPrimitives()
