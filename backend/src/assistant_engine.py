@@ -773,6 +773,28 @@ class AssistantEngine:
                 "context": ctx_dict
             }
 
+        # Step 1.4: Scenario-Specific Value & Business Impact Reasoning
+        from src.scenario_impact_reasoner import scenario_reasoner
+        if scenario_reasoner.can_reason_scenario(query):
+            scenario_res = scenario_reasoner.analyze_scenario_impact(query)
+            if scenario_res:
+                self._record_turn(session_id, query, scenario_res.formatted_response)
+                return {
+                    "response": scenario_res.formatted_response,
+                    "status": "success",
+                    "action_card": {
+                        "type": "feature_navigation",
+                        "route_link": scenario_res.target_route,
+                        "route_label": scenario_res.target_label,
+                        "title": f"{scenario_res.feature_name} in {scenario_res.scenario_name}",
+                        "action_label": f"👉 {scenario_res.target_label}"
+                    },
+                    "cached": True,
+                    "tokens_saved": 450,
+                    "total_tokens_saved": self.total_tokens_saved + 450,
+                    "context": ctx_dict
+                }
+
         # Step 1.5: Adaptive Conceptual Explanations (ELI5 / Simplified Analogies)
         if adaptive_explainer.is_beginner_query(query):
             matched_key = adaptive_explainer._match_topic(query)
