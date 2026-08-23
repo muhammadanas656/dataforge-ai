@@ -134,10 +134,10 @@ class SelfEvolutionEngine:
         }
 
     def execute_feature(self, feature_key: str, **kwargs) -> Any:
-        """Execute a dynamically deployed feature function."""
+        """Execute a dynamically deployed feature function inside the security sandbox."""
+        from src.sandbox_security import sandbox_governor
         key_clean = feature_key.lower().replace(" ", "_")
         if key_clean not in self.executable_modules:
-            # Check if in fibonacci variants
             if "fib" in key_clean:
                 key_clean = "fibonacci"
             elif "z_score" in key_clean:
@@ -146,7 +146,16 @@ class SelfEvolutionEngine:
         fn = self.executable_modules.get(key_clean)
         if not fn:
             raise KeyError(f"Feature '{feature_key}' is not mounted in executable modules.")
-        return fn(**kwargs)
+
+        # Execute with thread timeout bounds
+        timeout = float(kwargs.pop("timeout", 3.0))
+        exec_res = sandbox_governor.execute_safely(fn, kwargs=kwargs, timeout_seconds=timeout)
+        if exec_res.get("timed_out"):
+            return {"status": "timed_out", "timed_out": True, "error": exec_res["error"]}
+        if exec_res["status"] == "error":
+            raise RuntimeError(f"Runtime execution error in {feature_key}: {exec_res['error']}")
+
+        return exec_res["output"]
 
     def is_deployed(self, feature_key: str) -> bool:
         """Check if feature is active and compiled."""
@@ -154,13 +163,27 @@ class SelfEvolutionEngine:
         return key_clean in self.executable_modules or key_clean in self.registered_features
 
     def _compile_and_mount(self, feature_key: str, code_str: str) -> bool:
-        """Compile synthesized code inside safe local scope."""
+        """Compile synthesized code inside safe local scope after passing AST sandbox validation."""
         if not code_str:
             return False
+        
+        # 1. AST Sandbox Security Inspection
+        from src.sandbox_security import sandbox_governor
+        safety = sandbox_governor.inspect_code_safety(code_str)
+        if not safety.is_safe:
+            logger.error(f"[self_evolution] Sandbox violation for {feature_key}: {safety.reason} | {safety.violations}")
+            return False
+
         try:
             local_scope: Dict[str, Any] = {}
-            exec(code_str, {"__builtins__": __builtins__}, local_scope)
-            # Find the first callable function in local_scope
+            # Safe execution without dangerous built-ins
+            safe_builtins = {
+                "range": range, "len": len, "sum": sum, "min": min, "max": max,
+                "abs": abs, "round": round, "int": int, "float": float, "str": str,
+                "list": list, "dict": dict, "set": set, "tuple": tuple, "bool": bool,
+                "enumerate": enumerate, "zip": zip, "sorted": sorted, "print": print
+            }
+            exec(code_str, {"__builtins__": safe_builtins}, local_scope)
             for k, v in local_scope.items():
                 if callable(v):
                     self.executable_modules[feature_key] = v
