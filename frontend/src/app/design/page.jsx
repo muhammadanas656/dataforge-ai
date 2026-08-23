@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import VisualDesignInspector from "../components/VisualDesignInspector";
 import Sidebar from "../components/Sidebar";
+import RealTimeProcessRadar from "../components/RealTimeProcessRadar";
 
 export default function DesignStudioPage() {
   const [prompt, setPrompt] = useState("Quantum Spatial Security Shield with refractive mesh glow");
@@ -67,6 +68,9 @@ export default function DesignStudioPage() {
             </span>
           </div>
         </div>
+
+        {/* REAL-TIME 5-STUDIO AUTONOMOUS PROCESS RADAR */}
+        <RealTimeProcessRadar />
 
         {/* DESIGN PROMPT SYNTHESIZER BAR */}
         <form onSubmit={handleGenerate} className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-4">

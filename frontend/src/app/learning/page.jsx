@@ -18,6 +18,7 @@ import {
   Palette
 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
+import RealTimeProcessRadar from "../components/RealTimeProcessRadar";
 
 export default function LearningPage() {
   const [isEvolving, setIsEvolving] = useState(false);
@@ -87,6 +88,9 @@ export default function LearningPage() {
             </button>
           </div>
         </div>
+
+        {/* REAL-TIME 5-STUDIO AUTONOMOUS PROCESS RADAR */}
+        <RealTimeProcessRadar />
 
         {/* METRICS ROW */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
