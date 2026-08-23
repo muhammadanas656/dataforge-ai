@@ -43,6 +43,8 @@ const NAV_GROUPS = [
   {
     label: "🌐 Web & Design Studio",
     items: [
+      { href: "/design", label: "Vector Design & Pictures", icon: Palette },
+      { href: "/tokens", label: "Figma & W3C Tokens", icon: Code2 },
       { href: "/intel", label: "WebRadar & SEO Audit", icon: Radar },
       { href: "/research", label: "Market Growth & Leads", icon: Telescope },
       { href: "/alerts", label: "Domain & Trend Alerts", icon: BellRing },
