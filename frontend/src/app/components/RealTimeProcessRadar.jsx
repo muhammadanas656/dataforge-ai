@@ -19,16 +19,17 @@ import {
   Maximize2,
   ExternalLink
 } from "lucide-react";
+import { authFetch } from "../api";
 
 export default function RealTimeProcessRadar() {
   const [telemetry, setTelemetry] = useState(null);
-  const [activeTab, setActiveTab] = useState("preview"); // "preview" | "code" | "defects"
+  const [activeTab, setActiveTab] = useState("preview"); // "preview" | "web" | "code" | "defects" | "sources"
   const [isPolling, setIsPolling] = useState(true);
 
   // Fetch live telemetry from backend
   const fetchTelemetry = async () => {
     try {
-      const res = await fetch("/api/evolution/live-telemetry");
+      const res = await authFetch("/api/evolution/live-telemetry");
       if (res.ok) {
         const data = await res.json();
         setTelemetry(data);
@@ -69,7 +70,7 @@ export default function RealTimeProcessRadar() {
 
   const handleStartDaemon = async () => {
     try {
-      await fetch("/api/evolution/start", { method: "POST" });
+      await authFetch("/api/evolution/start", { method: "POST" });
       fetchTelemetry();
     } catch (e) {
       console.error(e);
@@ -78,7 +79,7 @@ export default function RealTimeProcessRadar() {
 
   const handlePauseDaemon = async () => {
     try {
-      await fetch("/api/evolution/stop", { method: "POST" });
+      await authFetch("/api/evolution/stop", { method: "POST" });
       fetchTelemetry();
     } catch (e) {
       console.error(e);
@@ -87,7 +88,7 @@ export default function RealTimeProcessRadar() {
 
   const handleStepCycle = async () => {
     try {
-      await fetch("/api/evolution/step", { method: "POST" });
+      await authFetch("/api/evolution/step", { method: "POST" });
       fetchTelemetry();
     } catch (e) {
       console.error(e);
@@ -96,7 +97,7 @@ export default function RealTimeProcessRadar() {
 
   useEffect(() => {
     fetchTelemetry();
-    const interval = setInterval(fetchTelemetry, 3000);
+    const interval = setInterval(fetchTelemetry, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -273,7 +274,15 @@ export default function RealTimeProcessRadar() {
                   activeTab === "preview" ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white"
                 }`}
               >
-                Rendered Vector
+                🎨 Rendered Vector
+              </button>
+              <button
+                onClick={() => setActiveTab("web")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === "web" ? "bg-purple-600 text-white shadow" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                🌐 Rendered Web Layout
               </button>
               <button
                 onClick={() => setActiveTab("code")}
@@ -281,7 +290,7 @@ export default function RealTimeProcessRadar() {
                   activeTab === "code" ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white"
                 }`}
               >
-                SVG Code
+                SVG / JSX Code
               </button>
               <button
                 onClick={() => setActiveTab("defects")}
@@ -289,7 +298,7 @@ export default function RealTimeProcessRadar() {
                   activeTab === "defects" ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white"
                 }`}
               >
-                Defect Diagnostics ({design.defects.length})
+                Defects ({design.defects.length})
               </button>
               <button
                 onClick={() => setActiveTab("sources")}
@@ -298,7 +307,7 @@ export default function RealTimeProcessRadar() {
                 }`}
               >
                 <Globe className="w-3 h-3 text-cyan-400" />
-                <span>Live Sources ({telemetry.studios.studio_2_web?.live_sources?.length || 4})</span>
+                <span>Web Sources ({telemetry.studios.studio_2_web?.live_sources?.length || 4})</span>
               </button>
             </div>
           </div>
@@ -310,6 +319,23 @@ export default function RealTimeProcessRadar() {
                 className="w-full h-full flex items-center justify-center transition-transform group-hover:scale-105 duration-300"
                 dangerouslySetInnerHTML={{ __html: design.active_svg_code }}
               />
+            )}
+
+            {activeTab === "web" && (
+              <div className="w-full h-full overflow-y-auto space-y-3 p-2">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <span className="text-xs font-bold text-purple-300 uppercase tracking-wider">
+                    🌐 Live Interactive Bento Grid UI Component
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 font-mono border border-purple-500/20">
+                    WCAG AAA • React Tailwind v4
+                  </span>
+                </div>
+                <div
+                  className="w-full"
+                  dangerouslySetInnerHTML={{ __html: telemetry.studios.studio_3_design?.bento_html || `<div class="p-4 rounded-xl bg-slate-900 border border-slate-750 text-white font-mono text-xs">Generating Bento Grid UI...</div>` }}
+                />
+              </div>
             )}
 
             {activeTab === "code" && (
