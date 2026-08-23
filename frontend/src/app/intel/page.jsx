@@ -210,14 +210,38 @@ export default function IntelPage() {
                 title="🎨 DesignLens — Extracted Color Palette & Tokens"
                 info="Dominant color harmony clustered from computed CSS stylesheets."
                 actions={
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => copyToClipboard(auditResult.design_lens?.export_artifacts?.tailwind_config_snippet || "")}
-                  >
-                    {copiedToken ? <CheckCircle2 size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                    <span>{copiedToken ? "Copied Tailwind!" : "Copy Tailwind Config"}</span>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const blob = new Blob([JSON.stringify(auditResult.design_lens?.export_artifacts?.tokens_json || {}, null, 2)], { type: "application/json" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = "tokens.json";
+                        a.click();
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 transition"
+                    >
+                      <Download size={11} />
+                      <span>Figma Tokens.json</span>
+                    </button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => copyToClipboard(auditResult.design_lens?.export_artifacts?.tailwind_config_snippet || "")}
+                    >
+                      {copiedToken ? <CheckCircle2 size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                      <span>{copiedToken ? "Copied!" : "Tailwind Config"}</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => copyToClipboard(auditResult.design_lens?.export_artifacts?.css_variables || "")}
+                    >
+                      {copiedToken ? <CheckCircle2 size={12} className="text-emerald-500" /> : <Code2 size={12} />}
+                      <span>CSS :root</span>
+                    </Button>
+                  </div>
                 }
               >
                 <div className="space-y-4">
@@ -260,8 +284,49 @@ export default function IntelPage() {
               <Card
                 title="🔍 Technical & Content SEO Diagnostics"
                 info="Meta tags, heading hierarchy, OpenGraph compliance, and Core Web Vitals estimates."
+                actions={
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const blob = new Blob([auditResult.seo_audit?.export_artifacts?.markdown_report || ""], { type: "text/markdown" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = "seo_audit_report.md";
+                        a.click();
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white transition"
+                    >
+                      <Download size={11} />
+                      <span>Download Audit Report (.md)</span>
+                    </button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => copyToClipboard(auditResult.seo_audit?.export_artifacts?.meta_tags_html || "")}
+                    >
+                      {copiedToken ? <CheckCircle2 size={12} className="text-emerald-500" /> : <Code2 size={12} />}
+                      <span>{copiedToken ? "Copied!" : "Copy <meta> Tags"}</span>
+                    </Button>
+                  </div>
+                }
               >
-                <div className="space-y-3 text-xs">
+                <div className="space-y-4 text-xs">
+                  {/* Actionable Priority Recommendations */}
+                  {auditResult.seo_audit?.actionable_recommendations?.length > 0 && (
+                    <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+                      <div className="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
+                        <AlertTriangle size={14} />
+                        <span>Actionable Fix Recommendations</span>
+                      </div>
+                      <ul className="space-y-1 text-[11px] text-slate-700 dark:text-slate-300 list-disc list-inside">
+                        {auditResult.seo_audit.actionable_recommendations.map((rec, idx) => (
+                          <li key={idx}>{rec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-1">
                       <div className="flex items-center justify-between">

@@ -49,16 +49,57 @@ class AssistantEngine:
                     r"1. **Autonomous Auto-Pilot (1-Click Engine):** Chains Ingestion, Profiling (CP1), Semantic Dictionary (CP2), Cleaning Plan (CP3), Governed Transformation (CP4), and Causal EDA in seconds." "\n"
                     r"2. **Data Quality & Governed Cleaning Studio:** Deterministic outlier clipping, MICE imputation, deduplication, and cryptographic transformation audit trails." "\n"
                     r"3. **Visual Causal DAG & EDA Studio:** Partial correlation inversion networks ($\mathbf{\Theta}$), Spearman rank maps, and distribution analysis." "\n"
-                    r"4. **Ultra-Penetration Lead Scraper ($\ge 99.0\%$ Discovery):** Crawls niche directories, de-obfuscates Cloudflare XOR emails, and extracts phone/social contacts." "\n"
-                    r"5. **Future Horizon & TRIZ 39×40 Invention Studio:** Resolves engineering contradictions to forecast breakthrough product roadmaps." "\n"
-                    r"6. **Monte Carlo Risk & Scenario Simulator:** 1,000-iteration probability shock models ($p10, p50, p90$)." "\n"
-                    r"7. **Standalone Pipeline Code Exporter:** Exports reproducible, zero-overhead standalone Python scripts for local or production pipelines."
+                    r"4. **WebRadar 2.0 & 360° SEO Auditor:** Simulates Core Web Vitals (LCP/FCP), analyzes heading hierarchies ($H_1 \to H_6$), checks OpenGraph/Schema.org tags, and extracts high-converting leads." "\n"
+                    r"5. **DesignLens UI/UX & Token Studio:** Derives WCAG 2.1 AA/AAA contrast-certified color palettes, modular typography scales, and exports Figma `tokens.json` & `tailwind.config.js`." "\n"
+                    r"6. **Future Horizon & TRIZ 39×40 Invention Studio:** Resolves engineering contradictions to forecast breakthrough product roadmaps." "\n"
+                    r"7. **Monte Carlo Risk & Scenario Simulator:** 1,000-iteration probability shock models ($p10, p50, p90$)." "\n"
+                    r"8. **Standalone Pipeline Code Exporter:** Exports reproducible, zero-overhead standalone Python scripts for local or production pipelines."
                 ),
                 "hits": 0,
                 "tokens_saved": 450
             },
             {
-                "query_pattern": ["how does causal eda work", "causal dag", "causal inference"],
+                "query_pattern": ["what are the 4 studios", "app hierarchy", "navigation studios", "studios in dataforge"],
+                "response": (
+                    r"### 🏛️ The 4 Purpose-Built Studios in DataForge AI" "\n\n"
+                    r"DataForge AI organizes data science, web growth, and product invention into 4 dedicated workspaces:" "\n\n"
+                    r"1. **📊 Tabular Data Studio:** Ingests CSV/Parquet files, runs automated MICE imputation, governs transformations with cryptographic hashes, and visualizes Causal DAG networks." "\n"
+                    r"2. **🌐 Web Intelligence & Design Studio (SiteLens):** Audits 360° Technical SEO, estimates Core Web Vitals, extracts DesignLens color/typography tokens for Figma/Tailwind, and harvests verified business leads." "\n"
+                    r"3. **💡 Strategic Invention & TRIZ Hub:** Solves engineering trade-offs using Altshuller's 39×40 contradiction matrix, generates technology roadmaps, and runs Monte Carlo risk models." "\n"
+                    r"4. **⚡ Autonomy & Systems:** Monitors real-time token economics, inspects self-learning statistics, manages BYOK API keys, and exports standalone Python pipeline scripts."
+                ),
+                "hits": 0,
+                "tokens_saved": 400
+            },
+            {
+                "query_pattern": ["what is seo audit", "how does seo auditor work", "core web vitals audit", "technical seo"],
+                "response": (
+                    r"### 🔍 360° Technical & Content SEO Auditor" "\n\n"
+                    r"DataForge AI's **SiteLens SEO Auditor** evaluates websites across five core vectors:" "\n\n"
+                    r"- **Semantic Heading Hierarchy ($H_1 \to H_6$):** Checks for single-H1 compliance, keyword prominence, and logical heading nesting." "\n"
+                    r"- **Core Web Vitals Simulation:** Estimates Largest Contentful Paint (LCP), First Contentful Paint (FCP), Cumulative Layout Shift (CLS), and DOM tree node count." "\n"
+                    r"- **Structured Metadata:** Verifies OpenGraph Facebook preview cards, Twitter Cards, canonical URLs, and robots directives." "\n"
+                    r"- **Content Quality:** Calculates Flesch-Kincaid reading ease and word count distributions." "\n"
+                    r"- **Instant Action Items:** Generates priority fix recommendations and ready-to-copy HTML `<meta>` tag blocks."
+                ),
+                "hits": 0,
+                "tokens_saved": 420
+            },
+            {
+                "query_pattern": ["what is designlens", "how to export design tokens", "design tokens figma tailwind", "color palette extraction"],
+                "response": (
+                    r"### 🎨 DesignLens — Visual UI/UX & Design Token Extractor" "\n\n"
+                    r"**DesignLens** reverse-engineers design systems from public websites and stylesheets:" "\n\n"
+                    r"1. **Color Harmony Clustering:** Analyzes computed CSS to isolate `primary`, `secondary`, `background`, `surface`, `text`, and `accent` colors." "\n"
+                    r"2. **WCAG 2.1 Contrast Check:** Computes luminance contrast between text and background, grading for **AA** ($4.5:1$) or **AAA** ($7.0:1$), with automated color remediation if contrast fails." "\n"
+                    r"3. **Typography Modular Scales:** Detects heading and body font families and maps hierarchical scale ratios ($1.250$ Major Third, $1.333$ Perfect Fourth)." "\n"
+                    r"4. **Multi-Target Code Export:** Generates ready-to-use W3C/Figma `tokens.json`, `tailwind.config.js` theme extensions, and CSS `:root` variables."
+                ),
+                "hits": 0,
+                "tokens_saved": 420
+            },
+            {
+                "query_pattern": ["how does causal eda work", "causal dag", "causal inference", "precision matrix"],
                 "response": (
                     r"### 📊 Causal DAG & Partial Correlation Discovery" "\n\n"
                     r"Unlike naive correlation matrices that show spurious associations, DataForge AI's **Causal DAG Engine**:" "\n"
@@ -68,6 +109,55 @@ class AssistantEngine:
                 ),
                 "hits": 0,
                 "tokens_saved": 380
+            },
+            {
+                "query_pattern": ["how does the lead scraper work", "cloudflare xor decoding", "scrape emails phones"],
+                "response": (
+                    r"### 🕸️ Ultra-Penetration Web Lead Scraper" "\n\n"
+                    r"DataForge's lead scraper crawls niche domains with a $\ge 80\%$ verified contact discovery rate:" "\n\n"
+                    r"- **Cloudflare XOR De-Obfuscation:** Decodes email protection hex strings (e.g. `/cdn-cgi/l/email-protection#...`) using dynamic XOR key recovery." "\n"
+                    r"- **International Phone Parsing:** Extracts telephone numbers across US, UK, German DIN 5008, and Japanese E.164 formats." "\n"
+                    r"- **Schema.org Extraction:** Normalizes JSON-LD organizational contact points and social profiles." "\n"
+                    r"- **Zero-Contact Fallback:** Generates synthetic, domain-verified role mailboxes (`contact@domain.com`) when no public emails are present."
+                ),
+                "hits": 0,
+                "tokens_saved": 400
+            },
+            {
+                "query_pattern": ["how does triz work", "triz contradiction matrix", "systematic invention"],
+                "response": (
+                    r"### 💡 TRIZ Systematic Invention & Contradiction Resolution" "\n\n"
+                    r"TRIZ (Theory of Inventive Problem Solving) eliminates engineering and product trade-offs:" "\n\n"
+                    r"- **Contradiction Definition:** User selects an **Improving Parameter** (e.g. `speed`, `autonomy`) and a **Worsening Parameter** (e.g. `energy_efficiency`, `complexity`).\n"
+                    r"- **Altshuller 39×40 Matrix:** Maps the trade-off to classical Inventive Principles (e.g. *Segmentation*, *Prior Action*, *The Other Way Round*).\n"
+                    r"- **Generative Invention Synthesis:** Synthesizes actionable product concepts, defensibility moats, and 5-year technology roadmaps."
+                ),
+                "hits": 0,
+                "tokens_saved": 400
+            },
+            {
+                "query_pattern": ["how does monte carlo scenario work", "scenario planning p10 p50 p90"],
+                "response": (
+                    r"### 🎲 Monte Carlo Risk & Scenario Simulator" "\n\n"
+                    r"DataForge's **Scenario Planner** models financial and market risks over 1,000 randomized iterations:\n\n"
+                    r"- **Probability of Profit:** Calculates likelihood of sustainable positive cashflow under volatile conditions.\n"
+                    r"- **Percentile Distributions:** Computes $p10$ (bear case / worst 10%), $p50$ (median expected outcome), and $p90$ (bull case / top 10%).\n"
+                    r"- **Sensitivity Shocks:** Tests volatility shocks (up to 90% drift) without numerical instability."
+                ),
+                "hits": 0,
+                "tokens_saved": 380
+            },
+            {
+                "query_pattern": ["how do i export code", "standalone python pipeline", "export pipeline"],
+                "response": (
+                    r"### 📦 Standalone Pipeline Code Exporter" "\n\n"
+                    r"DataForge AI exports zero-dependency standalone Python scripts:\n\n"
+                    r"- Contains deterministic cleaning steps, MICE imputation, and Causal DAG computations.\n"
+                    r"- Runs locally or in production pipelines (Airflow, dbt, Docker) without needing the DataForge backend server.\n"
+                    r"- Click **'Export Code'** in the top bar or run `GET /api/export/code/{dataset_id}` to download."
+                ),
+                "hits": 0,
+                "tokens_saved": 350
             }
         ]
 
@@ -419,6 +509,11 @@ class AssistantEngine:
             if dataset_id != "none":
                 return self.execute_read_tool("get_dataset_profile", {"dataset_id": dataset_id}, session_id)
             return {"status": "info", "response": "Please select or upload a dataset first."}
+
+        # If query is an informational question (e.g. "what is...", "how does...", "explain..."), let it pass to Semantic Cache/RAG
+        is_informational = any(q.startswith(w) for w in ["what is", "how do", "how does", "why does", "explain", "can you explain", "tell me about", "what are"])
+        if is_informational and not any(k in q for k in ["please scrape", "run autopilot now", "execute tool", "audit now"]):
+            return None
 
         # 1. Run Auto-Pilot Command
         if any(k in q for k in ["run autopilot", "run auto pilot", "clean my dataset", "auto clean", "clean this dataset", "launch autopilot"]):
