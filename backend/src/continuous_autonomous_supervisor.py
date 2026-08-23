@@ -166,7 +166,11 @@ def run_continuous_supervised_cycle(max_cycles: int = 3, delay_between_cycles_se
             }
         )
 
-        # 4. Periodic Model Self-Distillation (Every 20 cycles)
+        # 4. Push Live Synchronous State to Telemetry Hub
+        from src.studio_telemetry_hub import studio_telemetry_hub
+        studio_telemetry_hub.record_cycle_step()
+
+        # 5. Periodic Model Self-Distillation (Every 20 cycles)
         if cycle % 20 == 0:
             try:
                 from src.distillation_engine import DistillationEngine
