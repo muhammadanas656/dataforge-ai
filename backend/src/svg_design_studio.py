@@ -154,36 +154,69 @@ class SVGAssetStudio:
 
     def generate_vector_asset(self, query: str, style: str = "stroke", primary_color: str = "#06b6d4") -> Dict[str, Any]:
         """Generate a production-ready SVG icon and React/Vue component based on natural language query."""
+        from src import llm
         q_lower = query.lower()
+        clean_title = query.strip().title()
+        name = "".join(w.capitalize() for w in re.sub(r'[^A-Za-z0-9\s]', '', query).split()[:3]) or "CustomVector"
         
-        # Match template or synthesize dynamic vector
-        matched_key = "pipeline"
-        for key in self.VECTOR_TEMPLATES:
-            if key in q_lower:
-                matched_key = key
-                break
+        # 1. Attempt Autonomous Neural Synthesis via integrated LLM
+        prompt = (
+            f"You are a master SVG vector designer. Output ONLY valid, standalone <svg ...>...</svg> markup for: '{query}'.\n"
+            f"Primary accent color: '{primary_color}'.\n"
+            f"Rules:\n"
+            f"- Output raw <svg>...</svg> only. Zero markdown, zero backticks, zero conversational intro.\n"
+            f"- Use beautiful multi-stop linear/radial gradients and rich geometric/bezier paths.\n"
+            f"- Ensure valid viewBox (e.g. 0 0 512 512 or 0 0 128 128), role='img', aria-label='{clean_title}'.\n"
+        )
+        
+        raw_svg = ""
+        try:
+            resp = llm.query_llm(prompt, temperature=0.3)
+            if resp and "<svg" in resp:
+                svg_match = re.search(r'<svg[\s\S]*?</svg>', resp, re.IGNORECASE)
+                if svg_match:
+                    candidate = svg_match.group(0).strip()
+                    audit_res = self.audit_svg(candidate)
+                    if audit_res.get("is_valid_svg", False):
+                        raw_svg = candidate
+        except Exception as e:
+            logger.warning(f"[svg_studio] Neural synthesis fell back to procedural templates: {e}")
 
-        if "shield" in q_lower or "security" in q_lower or "ssrf" in q_lower:
-            matched_key = "shield"
-        elif "neural" in q_lower or "ai" in q_lower or "causal" in q_lower or "brain" in q_lower:
-            matched_key = "neural"
-        elif "satellite" in q_lower or "telemetry" in q_lower or "pulse" in q_lower:
-            matched_key = "telemetry"
-        elif "database" in q_lower or "lake" in q_lower or "sql" in q_lower:
-            matched_key = "database"
-        elif "chart" in q_lower or "monte" in q_lower or "risk" in q_lower or "plot" in q_lower:
-            matched_key = "chart"
+        # 2. If neural synthesis was not available, use procedural templates
+        if not raw_svg:
+            matched_key = "pipeline"
+            for key in self.VECTOR_TEMPLATES:
+                if key in q_lower:
+                    matched_key = key
+                    break
 
-        tpl = self.VECTOR_TEMPLATES[matched_key]
-        name = "".join(w.capitalize() for w in matched_key.split("_")) + "Icon"
-        inner_content = "".join(tpl["paths"])
+            if "shield" in q_lower or "security" in q_lower or "ssrf" in q_lower:
+                matched_key = "shield"
+            elif "neural" in q_lower or "ai" in q_lower or "causal" in q_lower or "brain" in q_lower:
+                matched_key = "neural"
+            elif "satellite" in q_lower or "telemetry" in q_lower or "pulse" in q_lower:
+                matched_key = "telemetry"
+            elif "database" in q_lower or "lake" in q_lower or "sql" in q_lower:
+                matched_key = "database"
+            elif "chart" in q_lower or "monte" in q_lower or "risk" in q_lower or "plot" in q_lower:
+                matched_key = "chart"
 
-        raw_svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{tpl['viewBox']}" width="24" height="24" fill="none" stroke="{primary_color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="{tpl['title']}">
+            tpl = self.VECTOR_TEMPLATES[matched_key]
+            name = "".join(w.capitalize() for w in matched_key.split("_")) + "Icon"
+            inner_content = "".join(tpl["paths"])
+
+            raw_svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{tpl['viewBox']}" width="100%" height="100%" fill="none" stroke="{primary_color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="{tpl['title']}">
   <title>{tpl['title']}</title>
   {inner_content}
 </svg>"""
+            view_box = tpl["viewBox"]
+        else:
+            vb_match = re.search(r'viewBox=["\']([^"\']+)["\']', raw_svg, re.IGNORECASE)
+            view_box = vb_match.group(1) if vb_match else "0 0 512 512"
+            inner_match = re.search(r'<svg[^>]*>([\s\S]*?)</svg>', raw_svg, re.IGNORECASE)
+            inner_content = inner_match.group(1).strip() if inner_match else raw_svg
 
-        react_jsx = self._to_react_component(name, tpl["viewBox"], inner_content)
+        react_jsx = self._to_react_component(name, view_box, inner_content)
         vue_component = f"""<template>
   <svg xmlns="http://www.w3.org/2000/svg" :viewBox="viewBox" :width="size" :height="size" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" :aria-label="title">
     <title>{{ title }}</title>
@@ -193,20 +226,20 @@ class SVGAssetStudio:
 
 <script setup>
 defineProps({{
-  size: {{ type: [Number, String], default: 24 }},
-  viewBox: {{ type: String, default: '{tpl["viewBox"]}' }},
-  title: {{ type: String, default: '{tpl["title"]}' }}
+  size: {{ type: [Number, String], default: 48 }},
+  viewBox: {{ type: String, default: '{view_box}' }},
+  title: {{ type: String, default: '{clean_title}' }}
 }});
 </script>"""
 
         return {
             "query": query,
             "asset_name": name,
-            "title": tpl["title"],
+            "title": clean_title,
             "raw_svg": raw_svg,
             "react_jsx": react_jsx,
             "vue_component": vue_component,
-            "tailwind_ready": f'<div className="w-6 h-6 text-cyan-500">{react_jsx}</div>',
+            "tailwind_ready": f'<div className="w-12 h-12 text-cyan-500">{react_jsx}</div>',
             "audit": self.audit_svg(raw_svg)
         }
 

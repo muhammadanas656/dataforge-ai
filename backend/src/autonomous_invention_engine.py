@@ -109,20 +109,29 @@ class AutonomousInventionEngine:
             "Principle #19 (Periodic Action: Sub-Pixel Pulse Glow)"
         ]
 
-        # Generate harmonious SVG vector code
-        svg_code = (
-            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="{asset_name}">\n'
-            f'  <title>{asset_name} - {domain_theme}</title>\n'
-            f'  <defs>\n'
-            f'    <linearGradient id="grad_{asset_name}" x1="0%" y1="0%" x2="100%" y2="100%">\n'
-            f'      <stop offset="0%" stop-color="{accent_color}" stop-opacity="0.9"/>\n'
-            f'      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95"/>\n'
-            f'    </linearGradient>\n'
-            f'  </defs>\n'
-            f'  <rect x="4" y="4" width="56" height="56" rx="12" fill="url(#grad_{asset_name})" stroke="{accent_color}" stroke-width="1.5"/>\n'
-            f'  <path d="M16 32h32M32 16v32" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>\n'
-            f'</svg>'
+        # 1. Synthesize vector code via autonomous SVG studio (Neural + Procedural)
+        from src.svg_design_studio import svg_studio
+        asset_res = svg_studio.generate_vector_asset(
+            query=f"{asset_name} {domain_theme}",
+            primary_color=accent_color
         )
+        svg_code = asset_res.get("raw_svg", "")
+
+        # Fallback if empty
+        if not svg_code:
+            svg_code = (
+                f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="{asset_name}">\n'
+                f'  <title>{asset_name} - {domain_theme}</title>\n'
+                f'  <defs>\n'
+                f'    <linearGradient id="grad_{asset_name}" x1="0%" y1="0%" x2="100%" y2="100%">\n'
+                f'      <stop offset="0%" stop-color="{accent_color}" stop-opacity="0.9"/>\n'
+                f'      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95"/>\n'
+                f'    </linearGradient>\n'
+                f'  </defs>\n'
+                f'  <rect x="4" y="4" width="56" height="56" rx="12" fill="url(#grad_{asset_name})" stroke="{accent_color}" stroke-width="1.5"/>\n'
+                f'  <path d="M16 32h32M32 16v32" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>\n'
+                f'</svg>'
+            )
 
         norm = svg_normalizer.normalize(svg_code, asset_name=asset_name)
         preview = visual_preview_generator.generate_preview(
