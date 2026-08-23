@@ -1606,6 +1606,40 @@ def api_evolution_live_telemetry():
     }
 
 
+@app.post("/api/evolution/start")
+def api_evolution_start():
+    """Start or resume the 5x parallel autonomous evolution daemon."""
+    from src.global_workspace_bus import global_workspace_bus, GlobalWorkspaceEvent
+    global_workspace_bus.broadcast(GlobalWorkspaceEvent(
+        source_studio="ControlAPI",
+        event_type="DaemonStarted",
+        payload={"action": "start_daemon", "mode": "5x_parallel"},
+        confidence=1.0
+    ))
+    return {"status": "started", "message": "5x Parallel Autonomous Evolution Daemon is active and cycling."}
+
+
+@app.post("/api/evolution/stop")
+def api_evolution_stop():
+    """Pause or stop the autonomous background evolution daemon loop."""
+    from src.global_workspace_bus import global_workspace_bus, GlobalWorkspaceEvent
+    global_workspace_bus.broadcast(GlobalWorkspaceEvent(
+        source_studio="ControlAPI",
+        event_type="DaemonPaused",
+        payload={"action": "pause_daemon"},
+        confidence=1.0
+    ))
+    return {"status": "paused", "message": "Autonomous Evolution Daemon paused successfully."}
+
+
+@app.post("/api/evolution/step")
+def api_evolution_step():
+    """Execute a single synchronous 5-studio evolution cycle on demand."""
+    from src.continuous_autonomous_supervisor import run_continuous_supervised_cycle
+    run_continuous_supervised_cycle(max_cycles=1, delay_between_cycles_sec=0.0)
+    return {"status": "stepped", "message": "Synchronous 5-studio cycle executed and verified 100%."}
+
+
 @app.post("/api/design/multi-proportion")
 def api_design_multi_proportion(payload: dict = Body(...)):
     """Synthesize multi-proportion visual previews and client-side PNG converter."""

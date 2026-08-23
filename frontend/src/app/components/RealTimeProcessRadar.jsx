@@ -66,6 +66,33 @@ export default function RealTimeProcessRadar() {
     }
   };
 
+  const handleStartDaemon = async () => {
+    try {
+      await fetch("/api/evolution/start", { method: "POST" });
+      fetchTelemetry();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handlePauseDaemon = async () => {
+    try {
+      await fetch("/api/evolution/stop", { method: "POST" });
+      fetchTelemetry();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleStepCycle = async () => {
+    try {
+      await fetch("/api/evolution/step", { method: "POST" });
+      fetchTelemetry();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     fetchTelemetry();
     const interval = setInterval(fetchTelemetry, 3000);
@@ -85,7 +112,7 @@ export default function RealTimeProcessRadar() {
 
   return (
     <div className="space-y-6">
-      {/* 1. TOP HEADER & TELEMETRY BADGES */}
+      {/* 1. TOP HEADER & TELEMETRY BADGES & INTERACTIVE CONTROLS */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-3xl bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl shadow-2xl">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -105,19 +132,36 @@ export default function RealTimeProcessRadar() {
           </div>
         </div>
 
-        {/* Global Epistemic Confidence & Entropy Meter */}
+        {/* Global Epistemic Confidence & Interactive Daemon Control Buttons */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="px-4 py-2 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Epistemic Confidence</span>
-            <span className="text-sm font-black text-emerald-400">{telemetry.epistemic_metrics.confidence}% Grounded</span>
+          <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+            <button
+              onClick={handleStartDaemon}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-all flex items-center gap-1"
+            >
+              ▶ Start Loop
+            </button>
+            <button
+              onClick={handlePauseDaemon}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-600/80 hover:bg-amber-500 text-white shadow transition-all flex items-center gap-1"
+            >
+              ⏸ Pause
+            </button>
+            <button
+              onClick={handleStepCycle}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow transition-all flex items-center gap-1"
+            >
+              ⚡ Step 1 Cycle
+            </button>
           </div>
-          <div className="px-4 py-2 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Information Entropy</span>
-            <span className="text-sm font-black text-cyan-400">{telemetry.epistemic_metrics.information_entropy_bits} bits H(X)</span>
+
+          <div className="px-3.5 py-2 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Confidence</span>
+            <span className="text-xs font-black text-emerald-400">{telemetry.epistemic_metrics.confidence}% Grounded</span>
           </div>
-          <div className="px-4 py-2 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Hallucination Risk</span>
-            <span className="text-sm font-black text-indigo-400">0% (Proved by Math)</span>
+          <div className="px-3.5 py-2 rounded-2xl bg-slate-950/70 border border-slate-800 flex flex-col">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Entropy H(X)</span>
+            <span className="text-xs font-black text-cyan-400">{telemetry.epistemic_metrics.information_entropy_bits} bits</span>
           </div>
         </div>
       </div>

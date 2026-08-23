@@ -66,6 +66,12 @@ TOOL_SPECS: Dict[str, ToolSpec] = {
     ),
     "execute_studio_workflow": ToolSpec(
         "execute_studio_workflow", "Execute chained multi-studio workflows across tabular, web, and invention studios.", "workflows", True, "high", (), True
+    ),
+    "start_evolution_daemon": ToolSpec(
+        "start_evolution_daemon", "Start the continuous 5x parallel autonomous evolution and self-improvement daemon.", "learning", True, "medium", (), True
+    ),
+    "stop_evolution_daemon": ToolSpec(
+        "stop_evolution_daemon", "Pause or stop the autonomous background evolution daemon loop.", "learning", True, "low", (), True
     )
 }
 
