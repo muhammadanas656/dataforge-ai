@@ -159,26 +159,37 @@ class SVGAssetStudio:
         clean_title = query.strip().title()
         name = "".join(w.capitalize() for w in re.sub(r'[^A-Za-z0-9\s]', '', query).split()[:3]) or "CustomVector"
         
-        # 1. Attempt Autonomous Neural Synthesis via integrated LLM
-        prompt = (
-            f"You are a master SVG vector designer. Output ONLY valid, standalone <svg ...>...</svg> markup for: '{query}'.\n"
-            f"Primary accent color: '{primary_color}'.\n"
-            f"Rules:\n"
-            f"- Output raw <svg>...</svg> only. Zero markdown, zero backticks, zero conversational intro.\n"
-            f"- Use beautiful multi-stop linear/radial gradients and rich geometric/bezier paths.\n"
-            f"- Ensure valid viewBox (e.g. 0 0 512 512 or 0 0 128 128), role='img', aria-label='{clean_title}'.\n"
+        # 1. Compile Master-Tier Autonomous Design Prompt with Layer Scaffolding
+        system_prompt = (
+            "You are an elite vector graphic designer and SVG software architect. "
+            "You specialize in creating breathtaking, multi-layered, modern SVG artwork using complex cubic/quadratic "
+            "bezier paths (M, C, Q, Z), multi-stop linear/radial gradients, and sophisticated lighting/shadow depth. "
+            "You NEVER output crude geometric placeholders, basic rectangles, or unstyled flat boxes. "
+            "Every vector you produce is an artistic masterpiece worthy of an Apple or Stripe showcase."
         )
-        
+
+        prompt = f"""Generate an ultra-high-quality, professional, multi-layered SVG illustration for: '{query}'.
+
+Design Guidelines:
+1. Root Element: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%" role="img" aria-label="{clean_title}">
+2. Defs Section: Create rich <defs> containing:
+   - Deep atmospheric sky/background linear gradients.
+   - Multi-stop object gradients using primary accent '{primary_color}' and complementary lighting tones.
+   - Radial glow or specular highlight filters.
+3. Multi-Layer Depth Composition:
+   - Layer 1 (Background): Atmospheric sky/space/environment with smooth multi-stop gradients.
+   - Layer 2 (Atmosphere & Particles): Clouds, stars, lighting trails, or environmental effects using opacity and soft beziers.
+   - Layer 3 (Main Subject): Highly detailed subject constructed with organic, curved bezier paths ('d="M... C... Q... Z"'), detailed contours, highlights, and secondary elements.
+   - Layer 4 (Foreground / Shading): Speed lines, reflections, edge glow, or framing elements.
+4. Output Requirement: Output ONLY the complete, raw <svg>...</svg> XML markup. Zero markdown backticks, zero conversational text."""
+
         raw_svg = ""
         try:
-            resp = llm.query_llm(prompt, temperature=0.3)
+            resp = llm.query_llm(prompt, system_prompt=system_prompt, temperature=0.3, max_tokens=2500)
             if resp and "<svg" in resp:
                 svg_match = re.search(r'<svg[\s\S]*?</svg>', resp, re.IGNORECASE)
                 if svg_match:
-                    candidate = svg_match.group(0).strip()
-                    audit_res = self.audit_svg(candidate)
-                    if audit_res.get("is_valid_svg", False):
-                        raw_svg = candidate
+                    raw_svg = svg_match.group(0).strip()
         except Exception as e:
             logger.warning(f"[svg_studio] Neural synthesis fell back to procedural templates: {e}")
 

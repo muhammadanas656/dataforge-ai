@@ -102,6 +102,20 @@ def tracked_chat(run_id, stage, agent, messages, **kwargs):
         raise e
 
 
+def query_llm(prompt: str, temperature: float = 0.2, max_tokens: int = 1500, system_prompt: str = "") -> str:
+    """Universal synchronous helper to query the configured LLM with automatic token tracking."""
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
+
+    try:
+        return tracked_chat("auto_gen", "design", "svg_studio", messages, temperature=temperature, max_tokens=max_tokens)
+    except Exception as e:
+        logger.warning(f"[llm] query_llm error: {e}")
+        return ""
+
+
 import asyncio
 
 
