@@ -89,6 +89,33 @@ class StudioTelemetryHub:
             },
             "sandbox_terminal_log": "[GUARD] Probed AST descriptor exploit ().__class__.__subclasses__() -> BLOCKED"
         }
+        self.is_daemon_running: bool = False
+        self._daemon_thread: threading.Thread = None
+
+    def start_daemon(self):
+        """Start the background autonomous evolution daemon thread."""
+        with self._lock:
+            self.is_daemon_running = True
+            if self._daemon_thread is None or not self._daemon_thread.is_alive():
+                self._daemon_thread = threading.Thread(target=self._run_daemon_worker, daemon=True)
+                self._daemon_thread.start()
+            self._save_to_disk()
+
+    def stop_daemon(self):
+        """Pause the background autonomous evolution daemon thread."""
+        with self._lock:
+            self.is_daemon_running = False
+            self._save_to_disk()
+
+    def _run_daemon_worker(self):
+        """Background worker thread continuously executing supervised cycles."""
+        from src.continuous_autonomous_supervisor import run_continuous_supervised_cycle
+        while self.is_daemon_running:
+            try:
+                run_continuous_supervised_cycle(max_cycles=1, delay_between_cycles_sec=0.0)
+            except Exception as e:
+                print(f"[Daemon worker error]: {e}")
+            time.sleep(0.8)
 
     def _save_to_disk(self):
         try:
@@ -108,6 +135,8 @@ class StudioTelemetryHub:
                         self.cycle_counter = data["cycle_number"]
                         self.last_updated = data.get("timestamp", time.time())
                         self.attention_focus = data.get("attention_focus", self.attention_focus)
+                        if "is_running" in data:
+                            self.is_daemon_running = data["is_running"]
                         if "studios" in data:
                             self.studio_1 = data["studios"].get("studio_1_data", self.studio_1)
                             self.studio_2 = data["studios"].get("studio_2_web", self.studio_2)
@@ -119,8 +148,9 @@ class StudioTelemetryHub:
 
     def _to_dict(self) -> Dict[str, Any]:
         return {
-            "status": "ACTIVE_RUNNING",
-            "daemon_task": "task-11071",
+            "status": "ACTIVE_RUNNING" if self.is_daemon_running else "PAUSED",
+            "is_running": self.is_daemon_running,
+            "daemon_task": "in-process-supervisor",
             "cycle_number": self.cycle_counter,
             "timestamp": self.last_updated,
             "attention_focus": self.attention_focus,

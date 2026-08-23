@@ -46,8 +46,11 @@ export default function RealTimeProcessRadar() {
 
   const handleStartDaemon = async () => {
     try {
-      await authFetch("/api/evolution/start", { method: "POST" });
-      fetchTelemetry();
+      const res = await authFetch("/api/evolution/start", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setTelemetry(data);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -55,8 +58,11 @@ export default function RealTimeProcessRadar() {
 
   const handlePauseDaemon = async () => {
     try {
-      await authFetch("/api/evolution/stop", { method: "POST" });
-      fetchTelemetry();
+      const res = await authFetch("/api/evolution/stop", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setTelemetry(data);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -64,8 +70,11 @@ export default function RealTimeProcessRadar() {
 
   const handleStepCycle = async () => {
     try {
-      await authFetch("/api/evolution/step", { method: "POST" });
-      fetchTelemetry();
+      const res = await authFetch("/api/evolution/step", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setTelemetry(data);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -91,6 +100,7 @@ export default function RealTimeProcessRadar() {
   const s3 = telemetry.studios.studio_3_design;
   const s4 = telemetry.studios.studio_4_risk;
   const s5 = telemetry.studios.studio_5_security;
+  const isRunning = telemetry.is_running || telemetry.status === "ACTIVE_RUNNING";
 
   return (
     <div className="space-y-6">
@@ -98,15 +108,22 @@ export default function RealTimeProcessRadar() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-3xl bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl shadow-2xl">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <Activity className="w-6 h-6 text-white animate-pulse" />
+            <Activity className={`w-6 h-6 text-white ${isRunning ? "animate-pulse" : "opacity-60"}`} />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-extrabold text-white tracking-tight">Real-Time Autonomous Process Radar</h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                LIVE 5X PARALLEL DAEMON
-              </span>
+              {isRunning ? (
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5 shadow-sm shadow-emerald-500/10">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  LIVE 5X DAEMON (ACTIVE)
+                </span>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  DAEMON PAUSED
+                </span>
+              )}
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-300">
                 Step #{telemetry.cycle_number}
               </span>
@@ -120,21 +137,26 @@ export default function RealTimeProcessRadar() {
         {/* Global Epistemic Confidence & Interactive Daemon Control Buttons */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
-            <button
-              onClick={handleStartDaemon}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-all flex items-center gap-1 cursor-pointer"
-            >
-              ▶ Start Loop
-            </button>
-            <button
-              onClick={handlePauseDaemon}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-600/80 hover:bg-amber-500 text-white shadow transition-all flex items-center gap-1 cursor-pointer"
-            >
-              ⏸ Pause
-            </button>
+            {!isRunning ? (
+              <button
+                onClick={handleStartDaemon}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>▶ Start Loop</span>
+              </button>
+            ) : (
+              <button
+                onClick={handlePauseDaemon}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/20 transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>⏸ Pause Loop</span>
+              </button>
+            )}
             <button
               onClick={handleStepCycle}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow transition-all flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600/80 hover:bg-indigo-500 text-white shadow transition-all flex items-center gap-1 cursor-pointer"
+              title="Execute a single synchronous 5-studio cycle"
             >
               ⚡ Step 1 Cycle
             </button>
