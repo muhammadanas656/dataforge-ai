@@ -727,6 +727,22 @@ class AssistantEngine:
                 "context": ctx_dict
             }
 
+        # Step 1.5: Adaptive Conceptual Explanations (ELI5 / Simplified Analogies)
+        from src.adaptive_explanations import adaptive_explainer
+        if adaptive_explainer.is_beginner_query(query):
+            matched_key = adaptive_explainer._match_topic(query)
+            if matched_key:
+                explanation = adaptive_explainer.explain(matched_key, user_level="beginner")
+                self._record_turn(session_id, query, explanation)
+                return {
+                    "response": explanation,
+                    "cached": True,
+                    "tokens_saved": 400,
+                    "total_tokens_saved": self.total_tokens_saved + 400,
+                    "explanation_mode": "beginner_eli5",
+                    "context": ctx_dict
+                }
+
         # Step 2: Check Semantic Cache for 0-Token Instant Response
         cache_hit = self._match_semantic_cache(query)
         if cache_hit:

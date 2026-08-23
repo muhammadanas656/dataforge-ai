@@ -39,6 +39,9 @@ export default function IntelPage() {
   const [svgPrompt, setSvgPrompt] = useState("data pipeline stream");
   const [svgResult, setSvgResult] = useState(null);
   const [isGeneratingSvg, setIsGeneratingSvg] = useState(false);
+  const [svgPreviewColor, setSvgPreviewColor] = useState("#06b6d4");
+  const [svgPreviewSize, setSvgPreviewSize] = useState(48); // 16, 24, 48, 96
+  const [activeCodeTab, setActiveCodeTab] = useState("react"); // "react" | "vue" | "svg"
 
   const job = useJob("intel_track", { url: "", name: "" }, { autoStart: false });
 
@@ -87,7 +90,7 @@ export default function IntelPage() {
       const res = await authFetch("/api/web/svg-generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: svgPrompt.trim(), primary_color: "#06b6d4" }),
+        body: JSON.stringify({ query: svgPrompt.trim(), primary_color: svgPreviewColor }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -98,6 +101,18 @@ export default function IntelPage() {
     } finally {
       setIsGeneratingSvg(false);
     }
+  };
+
+  const downloadFile = (filename, content, mimeType) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const copyToClipboard = (text) => {
@@ -450,15 +465,58 @@ export default function IntelPage() {
           {svgResult && (
             <div className="space-y-6 animate-fade-in">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Visual Preview */}
+                {/* Visual Preview with Interactive Sizing & Colors */}
                 <Card title="🎨 Vector Visual Preview">
-                  <div className="flex flex-col items-center justify-center p-6 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                  <div className="flex flex-col items-center justify-center p-6 bg-slate-950 rounded-xl border border-slate-800 space-y-4">
+                    {/* Dynamic SVG Container */}
                     <div
-                      className="w-20 h-20 text-cyan-400 flex items-center justify-center p-2 rounded-2xl bg-cyan-950/30 border border-cyan-800/50"
-                      dangerouslySetInnerHTML={{ __html: svgResult.raw_svg }}
-                    />
-                    <span className="text-xs font-bold text-slate-200">{svgResult.asset_name}</span>
-                    <Badge tone="good">{svgResult.title}</Badge>
+                      className="flex items-center justify-center p-3 rounded-2xl bg-slate-900/80 border border-slate-800 transition-all duration-200"
+                      style={{
+                        width: `${Math.max(svgPreviewSize + 24, 64)}px`,
+                        height: `${Math.max(svgPreviewSize + 24, 64)}px`,
+                        color: svgPreviewColor
+                      }}
+                    >
+                      <div
+                        style={{ width: `${svgPreviewSize}px`, height: `${svgPreviewSize}px` }}
+                        dangerouslySetInnerHTML={{ __html: svgResult.raw_svg }}
+                      />
+                    </div>
+
+                    <div className="text-center">
+                      <span className="text-xs font-bold text-slate-200 block">{svgResult.asset_name}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">{svgPreviewSize}px × {svgPreviewSize}px</span>
+                    </div>
+
+                    {/* Sizing Controls */}
+                    <div className="flex items-center gap-1.5 p-1 bg-slate-900 rounded-lg border border-slate-800 text-[10px]">
+                      {[16, 24, 48, 96].map((sz) => (
+                        <button
+                          key={sz}
+                          onClick={() => setSvgPreviewSize(sz)}
+                          className={`px-2 py-0.5 rounded font-mono transition ${
+                            svgPreviewSize === sz ? "bg-cyan-500 text-slate-950 font-bold" : "text-slate-400 hover:text-white"
+                          }`}
+                        >
+                          {sz}px
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Color Swatches */}
+                    <div className="flex items-center gap-2">
+                      {["#06b6d4", "#6366f1", "#10b981", "#f59e0b", "#ec4899", "#f8fafc"].map((c) => (
+                        <button
+                          key={c}
+                          onClick={() => setSvgPreviewColor(c)}
+                          className={`w-4 h-4 rounded-full border transition transform hover:scale-110 ${
+                            svgPreviewColor === c ? "ring-2 ring-white scale-110" : "border-slate-700"
+                          }`}
+                          style={{ backgroundColor: c }}
+                          title={`Color ${c}`}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </Card>
 
@@ -481,27 +539,85 @@ export default function IntelPage() {
                         {svgResult.audit?.overall_quality_score}/100
                       </span>
                     </div>
+
+                    <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-700 dark:text-cyan-300 text-[11px] space-y-1">
+                      <div className="font-bold">✨ Export Ready Features:</div>
+                      <div>• Clean responsive `viewBox="0 0 24 24"` coordinates</div>
+                      <div>• Typed React JSX with Tailwind `className` prop support</div>
+                      <div>• Sanitized XML with zero inline scripting risks</div>
+                    </div>
                   </div>
                 </Card>
               </div>
 
-              {/* Ready-to-Copy React Component Code */}
+              {/* Ready-to-Copy & Downloadable Component Code */}
               <Card
-                title="⚛️ Production React JSX Component"
+                title="💻 Component Code & Export Files"
                 actions={
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => copyToClipboard(svgResult.react_jsx)}
-                  >
-                    {copiedToken ? <CheckCircle2 size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                    <span>{copiedToken ? "Copied!" : "Copy React Component"}</span>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => downloadFile(`${svgResult.asset_name || "Icon"}.jsx`, svgResult.react_jsx, "text/javascript")}
+                    >
+                      <Download size={12} />
+                      <span>Download .jsx</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => downloadFile(`${svgResult.asset_name || "vector"}.svg`, svgResult.raw_svg, "image/svg+xml")}
+                    >
+                      <Download size={12} />
+                      <span>Download .svg</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => copyToClipboard(
+                        activeCodeTab === "react" ? svgResult.react_jsx : (activeCodeTab === "vue" ? svgResult.vue_component : svgResult.raw_svg)
+                      )}
+                    >
+                      {copiedToken ? <CheckCircle2 size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                      <span>{copiedToken ? "Copied!" : "Copy Code"}</span>
+                    </Button>
+                  </div>
                 }
               >
-                <pre className="p-3 rounded-xl bg-slate-900 text-slate-100 text-xs font-mono overflow-x-auto">
-                  <code>{svgResult.react_jsx}</code>
-                </pre>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+                    <button
+                      onClick={() => setActiveCodeTab("react")}
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-md transition ${
+                        activeCodeTab === "react" ? "bg-cyan-500/20 text-cyan-400 font-bold" : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      React JSX
+                    </button>
+                    <button
+                      onClick={() => setActiveCodeTab("vue")}
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-md transition ${
+                        activeCodeTab === "vue" ? "bg-cyan-500/20 text-cyan-400 font-bold" : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      Vue 3
+                    </button>
+                    <button
+                      onClick={() => setActiveCodeTab("svg")}
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-md transition ${
+                        activeCodeTab === "svg" ? "bg-cyan-500/20 text-cyan-400 font-bold" : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      Raw SVG
+                    </button>
+                  </div>
+
+                  <pre className="p-3 rounded-xl bg-slate-900 text-slate-100 text-xs font-mono overflow-x-auto max-h-64">
+                    <code>
+                      {activeCodeTab === "react" ? svgResult.react_jsx : (activeCodeTab === "vue" ? svgResult.vue_component : svgResult.raw_svg)}
+                    </code>
+                  </pre>
+                </div>
               </Card>
             </div>
           )}

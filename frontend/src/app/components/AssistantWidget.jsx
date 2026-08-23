@@ -19,8 +19,22 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import { formatMathMarkdown } from "./markdownUtils";
 import { authFetch } from "../api";
+import { useContextTracker } from "../hooks/useContextTracker";
 import { IconAutopilot, IconWebRadar, IconCausalEDA, IconCodeExporter, IconTrizInvention } from "./AntigravityIcons";
+
+const markdownComponents = {
+  table: ({ children }) => (
+    <div className="my-2 max-w-full overflow-x-auto rounded-lg">
+      <table className="min-w-full">{children}</table>
+    </div>
+  )
+};
 
 export default function AssistantWidget() {
   const router = useRouter();
@@ -30,9 +44,11 @@ export default function AssistantWidget() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [contextData, setContextData] = useState(null);
   const [tokenStats, setTokenStats] = useState({ total_tokens_saved: 0, cached_queries_count: 0 });
+  const [isSimpleMode, setIsSimpleMode] = useState(false);
   const [softRedirect, setSoftRedirect] = useState(null);
   const messagesEndRef = useRef(null);
   const sessionId = useRef(`sess_${Math.random().toString(36).substring(2, 9)}`);
+  useContextTracker(sessionId.current);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -56,12 +72,15 @@ export default function AssistantWidget() {
     }
   }, [isOpen]);
 
-  const sendMessage = async (customPrompt) => {
-    const text = (customPrompt || input || "").trim();
-    if (!text || isStreaming) return;
+  const handleSend = async (overrideText = null) => {
+    const rawText = overrideText || input;
+    if (!rawText.trim() || isStreaming) return;
 
-    const userMsg = { role: "user", content: text };
-    setMessages((prev) => [...prev, userMsg]);
+    const text = isSimpleMode && !rawText.toLowerCase().includes("simply") && !rawText.toLowerCase().includes("simple")
+      ? `${rawText.trim()} (explain simply like I'm 10 with analogies)`
+      : rawText.trim();
+
+    setMessages((prev) => [...prev, { role: "user", content: rawText }]);
     setInput("");
     setIsStreaming(true);
 
@@ -212,7 +231,31 @@ export default function AssistantWidget() {
     }
   };
 
-  const suggestedQuestions = [
+  const handlePreviewProposal = async (proposal, messageIndex) => {
+    if (!proposal || isStreaming) return;
+    try {
+      const res = await authFetch(`/api/assistant/dry-run`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tool_name: proposal.tool_name, args: proposal.args || {} })
+      });
+      const preview = await res.json();
+      setMessages((prev) => prev.map((message, index) => index === messageIndex
+        ? { ...message, action_card: { ...message.action_card, preview } }
+        : message));
+    } catch (error) {
+      console.error("Action preview failed:", error);
+    }
+  };
+
+  const suggestedQuestions = isSimpleMode ? [
+    { label: "💡 What is TRIZ simply?", action: false },
+    { label: "🌳 Explain Causal DAG like I'm 10", action: false },
+    { label: "📉 What are Fat Tails simply?", action: false },
+    { label: "🛡️ What is SSRF security in easy words?", action: false },
+    { label: "🧩 What does MICE imputation do simply?", action: false },
+    { label: "🚀 Run Auto-Pilot on my dataset", action: true }
+  ] : [
     { label: "🚀 Run Auto-Pilot on my dataset", action: true },
     { label: "🎯 Scrape leads for AI startups", action: true },
     { label: "📦 Export standalone Python code", action: true },
@@ -259,12 +302,25 @@ export default function AssistantWidget() {
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-            >
-              <X size={16} />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setIsSimpleMode(!isSimpleMode)}
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition ${
+                  isSimpleMode
+                    ? "bg-amber-500/20 text-amber-500 border-amber-500/40"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-300 dark:border-slate-700 hover:text-slate-200"
+                }`}
+                title="Toggle Simple Mode (ELI5 Explanations with Analogies)"
+              >
+                {isSimpleMode ? "🧸 Simple Mode ON" : "🎓 Simple Mode"}
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
 
           {/* Soft Non-Intrusive Redirection Notice */}
@@ -351,7 +407,9 @@ export default function AssistantWidget() {
                       <span className="ml-auto text-emerald-500 font-mono text-[9px]">⚡ Zero-Token Instant</span>
                     )}
                   </div>
-                  <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+                  <div className="chat-markdown font-sans [&_p]:mb-2 last:[&_p]:mb-0 [&_strong]:font-bold [&_em]:italic [&_ul]:my-2 [&_ul]:ml-4 [&_ul]:list-disc [&_ol]:my-2 [&_ol]:ml-4 [&_ol]:list-decimal [&_li]:my-0.5 [&_a]:text-cyan-600 [&_a]:underline [&_code]:rounded [&_code]:bg-slate-200 [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[10px] dark:[&_code]:bg-slate-700 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-slate-900 [&_pre]:p-2 [&_pre]:text-slate-100 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_blockquote]:my-2 [&_blockquote]:border-l-2 [&_blockquote]:border-cyan-500 [&_blockquote]:pl-2 [&_table]:my-2 [&_table]:w-full [&_table]:text-left [&_th]:border [&_th]:border-slate-300 [&_th]:bg-slate-200 [&_th]:px-2 [&_th]:py-1 [&_td]:border [&_td]:border-slate-300 [&_td]:px-2 [&_td]:py-1 dark:[&_th]:border-slate-600 dark:[&_th]:bg-slate-700 dark:[&_td]:border-slate-600">
+                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} components={markdownComponents}>{formatMathMarkdown(msg.content)}</ReactMarkdown>
+                  </div>
 
                   {/* Interactive Action Confirmation & Execution Cards */}
                   {msg.action_card && (
@@ -365,7 +423,20 @@ export default function AssistantWidget() {
                           <p className="text-[10px] text-slate-600 dark:text-slate-300">
                             {msg.action_card.impact}
                           </p>
+                          {msg.action_card.preview && (
+                            <div className="rounded-lg bg-white/60 p-2 text-[10px] dark:bg-slate-900/40">
+                              <div className="font-bold text-slate-700 dark:text-slate-200">Preview: {msg.action_card.preview.summary}</div>
+                              <div className="mt-1 text-slate-500 dark:text-slate-400">Impact: {msg.action_card.preview.impact} · Confirmation: {msg.action_card.preview.requires_confirmation ? "required" : "not required"}</div>
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 pt-1">
+                            <button
+                              onClick={() => handlePreviewProposal(msg.action_card, i)}
+                              disabled={isStreaming}
+                              className="px-2.5 py-1 rounded-lg bg-white/70 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold hover:bg-white dark:hover:bg-slate-700 transition"
+                            >
+                              Preview Impact
+                            </button>
                             <button
                               onClick={() => handleExecuteProposal(msg.action_card)}
                               disabled={isStreaming}
