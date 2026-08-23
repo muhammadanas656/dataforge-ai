@@ -22,7 +22,9 @@ import {
   MessageSquare,
   ChevronLeft,
   ChevronRight,
-  Clock
+  Clock,
+  ExternalLink,
+  Globe
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -40,6 +42,19 @@ const markdownComponents = {
     <div className="my-2 max-w-full overflow-x-auto rounded-lg">
       <table className="min-w-full">{children}</table>
     </div>
+  ),
+  a: ({ href, children }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded-md bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-400 dark:text-indigo-300 font-semibold border border-indigo-500/30 text-[10px] transition no-underline align-baseline"
+      title={`Open source: ${href}`}
+    >
+      <Globe size={9} className="text-cyan-400 shrink-0" />
+      <span className="truncate max-w-[140px]">{children}</span>
+      <ExternalLink size={8} className="opacity-70 shrink-0" />
+    </a>
   )
 };
 
