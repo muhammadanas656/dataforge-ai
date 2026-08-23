@@ -1531,6 +1531,7 @@ def api_design_web_layout(payload: dict = Body(...)):
 @app.get("/api/evolution/live-telemetry")
 def api_evolution_live_telemetry():
     """Real-time multi-studio process representation and calibrated scoring stream."""
+    import time
     from src.global_workspace_bus import global_workspace_bus
     from src.epistemic_metacognitive_engine import epistemic_engine
     from src.autonomous_skill_learner import autonomous_skill_learner
