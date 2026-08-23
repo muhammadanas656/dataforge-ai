@@ -44,7 +44,7 @@ def get_client(custom_provider=None, custom_key=None, custom_model=None):
 
     provider = (custom_provider or req_provider or os.getenv("api_provider") or settings.get("provider") or "groq").lower()
     key = custom_key or req_key or os.getenv("api_key") or os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY") or settings.get("api_key")
-    model = custom_model or req_model or os.getenv("api_model") or settings.get("model") or ("openai/gpt-oss-20b" if provider == "groq" else "gpt-4o-mini")
+    model = custom_model or req_model or os.getenv("api_model") or settings.get("model") or ("qwen/qwen3.6-27b" if provider == "groq" else "gpt-4o-mini")
 
     try:
         mod = import_module(provider)
@@ -87,19 +87,32 @@ def test_connection(provider: str, api_key: str, model: str) -> dict:
         }
 
 
+FALLBACK_MODELS = ["openai/gpt-oss-120b", "qwen/qwen3.6-27b", "groq/compound-mini", "groq/compound"]
+
 def tracked_chat(run_id, stage, agent, messages, **kwargs):
     client, model = get_client()
-    try:
-        resp = client.chat.completions.create(model=model, messages=messages, **kwargs)
-        u = resp.usage
-        pt = getattr(u, "prompt_tokens", 0) if u else 0
-        ct = getattr(u, "completion_tokens", 0) if u else 0
-        tracker.record(run_id, stage, agent, model, pt, ct)
-        return resp.choices[0].message.content.strip()
-    except Exception as e:
-        logger.warning(f"[llm] API call failed in tracked_chat: {e}")
-        tracker.record(run_id, stage, agent, model or "fallback", 0, 0, cached=1, saved=250)
-        raise e
+    models_to_try = [model] + [m for m in FALLBACK_MODELS if m != model]
+    
+    last_err = None
+    for target_m in models_to_try:
+        try:
+            resp = client.chat.completions.create(model=target_m, messages=messages, **kwargs)
+            u = resp.usage
+            pt = getattr(u, "prompt_tokens", 0) if u else 0
+            ct = getattr(u, "completion_tokens", 0) if u else 0
+            tracker.record(run_id, stage, agent, target_m, pt, ct)
+            return resp.choices[0].message.content.strip()
+        except Exception as e:
+            last_err = e
+            if "429" in str(e) or "rate_limit" in str(e).lower():
+                logger.info(f"[llm] Model '{target_m}' rate-limited. Trying failover model in pool...")
+                continue
+            else:
+                logger.warning(f"[llm] API call failed on '{target_m}': {e}")
+                break
+
+    tracker.record(run_id, stage, agent, model or "fallback", 0, 0, cached=1, saved=250)
+    raise last_err or Exception("All LLM providers/models exhausted")
 
 
 def query_llm(prompt: str, temperature: float = 0.2, max_tokens: int = 1500, system_prompt: str = "") -> str:
