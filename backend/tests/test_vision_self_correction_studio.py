@@ -55,26 +55,32 @@ def test_vision_self_correction_audit_detects_defects():
 
 def test_vision_self_correction_audit_approves_masterpieces():
     """Verify that multi-stop gradient, high-bezier SVGs achieve masterpiece fitness."""
-    masterpiece_svg = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+    # Synthesize genuine high-detail masterpiece using geometry primitives
+    ridge1 = geometry_primitives.mountain_ridge(800, 420, 240, 5, "#1e293b", "#ffffff")
+    ridge2 = geometry_primitives.mountain_ridge(800, 490, 180, 6, "#0f172a", "#cbd5e1")
+    wings = geometry_primitives.soaring_wings(400, 200, 1.2, "wing")
+    sun = geometry_primitives.sun_aurora(400, 150, 80, "#fbbf24")
+
+    masterpiece_svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
       <defs>
-        <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient>
-        <linearGradient id="wing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#78350f"/></linearGradient>
+        <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#0f172a"/><stop offset="50%" stop-color="#1e1b4b"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient>
+        <linearGradient id="wing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="50%" stop-color="#d97706"/><stop offset="100%" stop-color="#78350f"/></linearGradient>
+        <linearGradient id="snow" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cbd5e1"/></linearGradient>
+        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/></radialGradient>
         <filter id="glow"><feGaussianBlur stdDeviation="8"/></filter>
       </defs>
       <rect width="800" height="600" fill="url(#sky)"/>
-      <path d="M 100 200 C 150 120, 250 120, 300 200 Q 320 220, 340 200 C 380 180, 420 180, 460 200 C 500 220, 540 240, 580 200 C 620 180, 660 180, 700 200 Z" fill="url(#wing)"/>
-      <path d="M 200 300 C 240 250, 300 250, 340 300 Q 360 320, 380 300 C 420 280, 460 280, 500 300 Z" fill="url(#wing)"/>
-      <circle cx="400" cy="300" r="80" fill="url(#sky)"/>
-      <circle cx="400" cy="300" r="30" fill="#ffffff"/>
-      <polygon points="100,500 200,300 300,500" fill="#1e293b"/>
-      <polygon points="250,500 350,320 450,500" fill="#0f172a"/>
+      {sun}
+      {ridge1}
+      {ridge2}
+      {wings}
     </svg>"""
 
-    audit = vision_self_correction.audit_vector_quality(masterpiece_svg, query="a futuristic landscape")
+    audit = vision_self_correction.audit_vector_quality(masterpiece_svg, query="a majestic eagle over snow-capped mountains")
     assert audit["fitness_score"] >= 88.0
     assert audit["is_masterpiece"] is True
-    assert audit["bezier_curves_count"] >= 4
-    assert audit["gradients_count"] >= 3
+    assert audit["bezier_curves_count"] >= 12
+    assert audit["gradients_count"] >= 4
 
 
 def test_vision_self_correction_refinement_pipeline():

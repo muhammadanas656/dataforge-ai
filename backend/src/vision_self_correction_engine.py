@@ -24,46 +24,63 @@ class VisionSelfCorrectionEngine:
         if not svg_code or "<svg" not in svg_code:
             return {"fitness_score": 0.0, "is_masterpiece": False, "defects": ["Invalid or empty SVG code"]}
 
-        # 1. Bezier & Organic Curvature Metric
+        # 1. Strict Bezier & Organic Curvature Metric (High-Resolution Curvature)
         cubic_count = len(re.findall(r'[CcQqSsTt]\s*-?\d+', svg_code))
         path_count = len(re.findall(r'<path|<circle|<rect|<polygon|<ellipse|<line', svg_code, re.I))
 
-        if cubic_count < 4:
-            score -= 25.0
-            defects.append("CRITICAL: Vector lacks organic bezier curves (C/Q paths); looks like flat boxy polygons.")
-        elif cubic_count < 10:
-            score -= 10.0
-            defects.append("MINOR: Could benefit from higher-order bezier curvature on edges.")
-
-        # 2. Photometric Gradient & Lighting Depth
-        gradient_count = len(re.findall(r'<linearGradient|<radialGradient|<filter', svg_code, re.I))
-        if gradient_count == 0:
+        if cubic_count < 6:
             score -= 30.0
+            defects.append("CRITICAL: Vector lacks organic bezier curves (C/Q paths); appears clunky or primitive.")
+        elif cubic_count < 12:
+            score -= 12.0
+            defects.append("MODERATE: Needs richer micro-bezier curvature and feathered edge articulation.")
+        elif cubic_count < 18:
+            score -= 5.0
+            defects.append("MINOR: Add fine-grained contour curvature for true 9.5/10 masterwork depth.")
+
+        # 2. Photometric Gradient & Physical Lighting Depth
+        gradient_count = len(re.findall(r'<linearGradient|<radialGradient|<filter', svg_code, re.I))
+        if gradient_count < 2:
+            score -= 25.0
             defects.append("CRITICAL: Missing multi-stop gradient lighting and atmospheric filters.")
         elif gradient_count < 3:
-            score -= 12.0
-            defects.append("MODERATE: Needs deeper gradient layering for 2.5D physical lighting.")
+            score -= 10.0
+            defects.append("MODERATE: Needs at least 3 multi-stop gradients for realistic 2.5D physical lighting.")
+        elif gradient_count < 4:
+            score -= 3.0
+            defects.append("MINOR: Add specular highlights or ambient rim-lighting.")
 
-        # 3. Structural Complexity & Layering
+        # 3. Structural Complexity & Micro-Detail Element Density
         if path_count < 6:
             score -= 20.0
-            defects.append("CRITICAL: Low element density; composition is empty or under-detailed.")
+            defects.append("CRITICAL: Element density too low (<6 elements); lacks professional visual richness.")
+        elif path_count < 12:
+            score -= 8.0
+            defects.append("MODERATE: Add secondary micro-details (e.g. canopy glass, plumage, rivets, particle haze).")
 
-        # 4. ViewBox & Accessibility
+        # 4. ViewBox & Accessibility Standards
         has_viewbox = "viewbox" in svg_code.lower()
         if not has_viewbox:
             score -= 15.0
             defects.append("CRITICAL: Missing responsive viewBox attribute.")
 
-        # 5. Contrast & Semantic Grounding
+        # 5. Semantic & Anatomical Landmark Invariants
         q_lower = query.lower()
-        if "mountain" in q_lower and "snow" not in svg_code.lower() and "polygon" not in svg_code.lower():
-            score -= 10.0
-            defects.append("TOPOLOGY: Mountain scene lacks snow caps or multi-tier parallax ridges.")
+        if "mountain" in q_lower:
+            has_snow = "snow" in svg_code.lower() or "f8fafc" in svg_code.lower() or "ffffff" in svg_code.lower()
+            if not has_snow or path_count < 8:
+                score -= 12.0
+                defects.append("ANATOMY: Mountain vista lacks multi-tier snow-capped ridges and atmospheric depth.")
 
-        if ("bird" in q_lower or "eagle" in q_lower) and cubic_count < 8:
-            score -= 15.0
-            defects.append("ANATOMY: Bird subject lacks articulated primary feather beziers and curved beak.")
+        if "bird" in q_lower or "eagle" in q_lower:
+            if cubic_count < 10 or path_count < 8:
+                score -= 15.0
+                defects.append("ANATOMY: Bird lacks articulated primary wing feathers (5 per wing) and curved beak.")
+
+        if "jet" in q_lower or "airplane" in q_lower:
+            if cubic_count < 10 or path_count < 8:
+                score -= 12.0
+                defects.append("ANATOMY: Aerospace jet lacks swept delta wings, canopy specular reflections, or afterburner flares.")
 
         final_fitness = max(10.0, round(score, 1))
         return {
