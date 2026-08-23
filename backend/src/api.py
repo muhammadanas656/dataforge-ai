@@ -1499,6 +1499,16 @@ def api_design_invent(payload: dict = Body(...)):
     }
 
 
+@app.post("/api/design/web-layout")
+def api_design_web_layout(payload: dict = Body(...)):
+    """Synthesize full-stack web layouts, React/Tailwind code, and W3C design tokens."""
+    query = payload.get("query", "Autonomous Intelligence Cloud")
+    layout_type = payload.get("layout_type", "hero_landing")
+    domain_theme = payload.get("domain_theme", "Quantum_CyberSecurity")
+    from src.web_design_studio import web_design_studio
+    return web_design_studio.generate_web_layout(query, layout_type=layout_type, domain_theme=domain_theme)
+
+
 @app.post("/api/design/multi-proportion")
 def api_design_multi_proportion(payload: dict = Body(...)):
     """Synthesize multi-proportion visual previews and client-side PNG converter."""
