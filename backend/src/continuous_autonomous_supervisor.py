@@ -26,6 +26,20 @@ from src.scenario_impact_reasoner import scenario_reasoner
 from src.utils import logger
 
 
+# Pre-compiled diverse domain archetypes for autonomous self-discovery and zero-token caching
+UNSEEN_DISCOVERY_ARCHETYPES = [
+    ("QuantumSatelliteMesh", "Quantum_CyberSecurity", "#6366f1"),
+    ("BiometricVaultDial", "FinTech", "#06b6d4"),
+    ("AerospaceHypersonicJet", "Aerospace", "#38bdf8"),
+    ("NeuralDnaHelix", "BioTech", "#10b981"),
+    ("SpatialGlassmorphicDashboard", "VisionOS_UI", "#8b5cf6"),
+    ("AutonomousDroneSwarm", "Robotics", "#f59e0b"),
+    ("ZeroTrustSecurityShield", "CyberSecurity", "#ec4899"),
+    ("SolarFusionReactor", "RenewableEnergy", "#eab308"),
+    ("CausalGraphLattice", "DataScience", "#6366f1"),
+    ("AlpineAuroraGlacier", "ScenicLandscape", "#0284c7")
+]
+
 def run_continuous_supervised_cycle(max_cycles: int = 3, delay_between_cycles_sec: float = 1.0):
     """Run comprehensive supervised autonomous cycles across all system features."""
     print("=" * 80)
@@ -52,15 +66,19 @@ def run_continuous_supervised_cycle(max_cycles: int = 3, delay_between_cycles_se
         print(f"        -> Scanned {s2_res.operations_executed} domains, extracted {s2_res.metrics['vectors_extracted']} vectors [Passed: {s2_res.passed}]")
 
         # -------------------------------------------------------------
-        # 3. TEST & EVOLVE STUDIO 3 (Generative Design & TRIZ Evolution)
+        # 3. TEST & EVOLVE STUDIO 3 (Autonomous Prompt Sampling & Caching)
         # -------------------------------------------------------------
         print("  [3/6] Running Studio 3 (Generative Vector Design & Multi-Viewport)...")
+        arch_idx = (cycle - 1) % len(UNSEEN_DISCOVERY_ARCHETYPES)
+        arch_name, arch_theme, arch_color = UNSEEN_DISCOVERY_ARCHETYPES[arch_idx]
+        dynamic_asset_name = f"{arch_name}_C{cycle}"
+
         v_inv = autonomous_invention.invent_generative_vector(
-            f"SupervisedVector_C{cycle}",
-            domain_theme="CyberSecurity",
-            accent_color="#6366f1"
+            dynamic_asset_name,
+            domain_theme=arch_theme,
+            accent_color=arch_color
         )
-        print(f"        -> Evolved '{v_inv.asset_name}' (Fitness: {v_inv.fitness_score:.1f}/100, WCAG AAA: {v_inv.wcag_aaa_compliant}) [React JSX & Vue 3 Compiled]")
+        print(f"        -> Autonomously Evolved '{v_inv.asset_name}' (Fitness: {v_inv.fitness_score:.1f}/100, Theme: {arch_theme}) [Cached to 0-Token Memory]")
 
         # -------------------------------------------------------------
         # 4. TEST & EVOLVE STUDIO 4 (Strategic Invention & Risk)
