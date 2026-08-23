@@ -7,9 +7,8 @@ from typing import Dict, Any, List, NamedTuple, Optional
 import math
 import numpy as np
 import pandas as pd
-from src.sandbox_security import sandbox_governor
-from src.researcher_grounding_engine import researcher_grounding
 from src.svg_normalizer import svg_normalizer
+from src.visual_asset_preview_generator import visual_preview_generator
 from src.utils import logger
 
 
@@ -28,6 +27,8 @@ class VectorInventionResult(NamedTuple):
     applied_triz_operators: List[str]
     fitness_score: float
     wcag_aaa_compliant: bool
+    data_uri_image: Optional[str] = None
+    preview_html_path: Optional[str] = None
 
 
 class AutonomousInventionEngine:
@@ -124,6 +125,12 @@ class AutonomousInventionEngine:
         )
 
         norm = svg_normalizer.normalize(svg_code, asset_name=asset_name)
+        preview = visual_preview_generator.generate_preview(
+            asset_name=asset_name,
+            svg_markup=norm.raw_svg,
+            fitness_score=94.5,
+            domain_theme=domain_theme
+        )
 
         return VectorInventionResult(
             asset_name=asset_name,
@@ -132,7 +139,9 @@ class AutonomousInventionEngine:
             vue_component=norm.vue_component,
             applied_triz_operators=triz_operators,
             fitness_score=94.5,
-            wcag_aaa_compliant=True
+            wcag_aaa_compliant=True,
+            data_uri_image=preview.data_uri_image,
+            preview_html_path=preview.html_preview_filepath
         )
 
 
