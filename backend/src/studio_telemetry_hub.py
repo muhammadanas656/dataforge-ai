@@ -153,22 +153,24 @@ class StudioTelemetryHub:
             self.studio_1["causal_dag_svg"] = self._generate_causal_dag_svg(c)
 
             # Evolve Studio 2
-            self.studio_2["domains_scanned_count"] = 18 + (c % 30)
-            themes = ["#38bdf8", "#6366f1", "#a855f7", "#10b981", "#fbbf24", "#ec4899"]
-            self.studio_2["extracted_tokens"]["primary"] = themes[c % len(themes)]
+            self.studio_2["domains_scanned_count"] = 18 + (c % 50)
+            self.studio_2["extracted_tokens"]["primary"] = self._hsl_to_hex((c * 37.0) % 360.0, 90.0, 60.0)
+            self.studio_2["extracted_tokens"]["secondary"] = self._hsl_to_hex((c * 37.0 + 120.0) % 360.0, 85.0, 55.0)
 
             # Evolve Studio 3
             self.studio_3["active_svg"] = self._generate_vector_svg(c)
             self.studio_3["bento_html"] = self._generate_bento_html(c)
-            titles = [
-                "Hypersonic Aerospace Jet with Stratospheric Aura",
-                "Quantum Supercomputer Hexagonal Core Matrix",
-                "Golden Eagle Soaring High Alpine Twilight Ridge",
-                "Spatial Glassmorphic VisionOS Telemetry Card",
-                "Biometric Quantum Vault with Rotary Gyro"
+            archetypes = [
+                "Hypersonic Aerospace Delta Wing",
+                "Quantum Superconducting Hex Matrix",
+                "Alpine Glacial Aurora Twilight Ridge",
+                "Bio-Helical Molecular Resonance Core",
+                "Spatial Glassmorphic VisionOS HUD",
+                "Deep Space Magnetic Fusion Reactor"
             ]
-            self.studio_3["theme_title"] = titles[c % len(titles)]
-            self.attention_focus = f"Evolving: {self.studio_3['theme_title']} (Step #{c})"
+            base_title = archetypes[c % len(archetypes)]
+            self.studio_3["theme_title"] = f"{base_title} (Variant #{c})"
+            self.attention_focus = f"Evolving: {self.studio_3['theme_title']}"
 
             # Evolve Studio 4
             self.studio_4["var_95"] = round(-2.2899 - (c % 5)*0.04, 4)
@@ -224,11 +226,102 @@ class StudioTelemetryHub:
   <text x="200" y="220" fill="#94a3b8" font-family="sans-serif" font-size="9" text-anchor="middle">Do-Calculus: P(Churn | do(Usage)) Verified</text>
 </svg>"""
 
+    def _hsl_to_hex(self, h: float, s: float, l: float) -> str:
+        """Convert HSL to RGB Hex string."""
+        s = s / 100.0
+        l = l / 100.0
+        c = (1.0 - abs(2.0 * l - 1.0)) * s
+        x = c * (1.0 - abs((h / 60.0) % 2.0 - 1.0))
+        m = l - c / 2.0
+        if 0 <= h < 60:
+            r, g, b = c, x, 0
+        elif 60 <= h < 120:
+            r, g, b = x, c, 0
+        elif 120 <= h < 180:
+            r, g, b = 0, c, x
+        elif 180 <= h < 240:
+            r, g, b = 0, x, c
+        elif 240 <= h < 300:
+            r, g, b = x, 0, c
+        else:
+            r, g, b = c, 0, x
+        return f"#{int((r+m)*255):02x}{int((g+m)*255):02x}{int((b+m)*255):02x}"
+
     def _generate_vector_svg(self, cycle: int = 1) -> str:
-        """Render high-order parametric vector with 5-stop physical lighting."""
-        themes = ["#38bdf8", "#a855f7", "#fbbf24", "#10b981", "#ec4899"]
-        c_acc = themes[cycle % len(themes)]
-        h = 220 + int((cycle * 7) % 30)
+        """Render truly generative, non-repeating parametric vector artwork."""
+        # 1. Continuous HSL Color Orbit using prime angular step 37.0°
+        h_prime = (cycle * 37.0) % 360.0
+        c_acc = self._hsl_to_hex(h_prime, 90.0, 60.0)
+        c_sec = self._hsl_to_hex((h_prime + 120.0) % 360.0, 85.0, 55.0)
+        c_tri = self._hsl_to_hex((h_prime + 240.0) % 360.0, 95.0, 65.0)
+
+        # 2. Dynamic Fourier Wave Parameters
+        wave_shift = (cycle * 13) % 200
+        ridge_y = 200 + int(30.0 * math.sin(cycle * 0.15))
+        sun_x = 400 + int(120.0 * math.sin(cycle * 0.08))
+        sun_y = 150 + int(40.0 * math.cos(cycle * 0.12))
+        sun_r = 75 + int(25.0 * math.sin(cycle * 0.2))
+
+        # 3. Dynamic Archetype Switch across 6 Parametric Typologies
+        mode = cycle % 6
+        if mode == 0:
+            # Aerospace Delta Jet with dynamic Mach angle
+            wing_span = 180 + int(40.0 * math.sin(cycle * 0.3))
+            sweep_y = -60 - int(30.0 * math.cos(cycle * 0.3))
+            center_art = f"""<g transform="translate(400, 240) scale({1.1 + 0.2*math.sin(cycle*0.1):.2f})" filter="url(#glow)">
+              <path d="M 0,-80 L {wing_span},{sweep_y} L 40,20 L 0,0 L -40,20 L -{wing_span},{sweep_y} Z" fill="url(#mesh_glow)"/>
+              <line x1="0" y1="-80" x2="0" y2="40" stroke="#ffffff" stroke-width="2.5"/>
+              <circle cx="0" cy="40" r="8" fill="{c_acc}" filter="url(#glow)"/>
+            </g>"""
+        elif mode == 1:
+            # Quantum Core Lattice with dynamic orbiting rings
+            r1 = 60 + int(20.0 * math.sin(cycle * 0.25))
+            r2 = 95 + int(25.0 * math.cos(cycle * 0.25))
+            center_art = f"""<g transform="translate(400, 260)" filter="url(#glow)">
+              <circle cx="0" cy="0" r="{r1}" fill="none" stroke="{c_acc}" stroke-width="3" stroke-dasharray="8,4"/>
+              <ellipse cx="0" cy="0" rx="{r2}" ry="45" fill="none" stroke="{c_sec}" stroke-width="2.5" transform="rotate({(cycle*15)%360})"/>
+              <ellipse cx="0" cy="0" rx="{r2}" ry="45" fill="none" stroke="{c_tri}" stroke-width="2.5" transform="rotate({(cycle*15 + 60)%360})"/>
+              <circle cx="0" cy="0" r="22" fill="#ffffff" opacity="0.95"/>
+            </g>"""
+        elif mode == 2:
+            # High Alpine Ridge with Parametric Peaks
+            p1 = 280 + int(40.0 * math.sin(cycle * 0.18))
+            p2 = 250 + int(35.0 * math.cos(cycle * 0.22))
+            center_art = f"""<g>
+              <polygon points="0,420 120,{p1} 240,410 360,{p2} 480,390 600,{p1-30} 720,400 800,420 800,600 0,600" fill="#0f172a"/>
+              <polygon points="0,490 140,430 280,480 420,410 560,470 700,420 800,490 800,600 0,600" fill="#020617" opacity="0.95"/>
+              <path d="M 300,190 Q 400,140 500,190 Q 400,175 300,190 Z" fill="url(#mesh_glow)" filter="url(#glow)"/>
+            </g>"""
+        elif mode == 3:
+            # Bio-Helical Resonance Lattice
+            nodes = "".join([
+                f'<circle cx="{250 + i*30}" cy="{250 + int(50*math.sin(i*0.8 + cycle*0.3))}" r="6" fill="{c_acc if i%2==0 else c_sec}"/>'
+                for i in range(11)
+            ])
+            center_art = f"""<g filter="url(#glow)">
+              <path d="M 250,250 Q 400,{200 + int(40*math.sin(cycle*0.2))} 550,250" stroke="{c_acc}" stroke-width="3" fill="none"/>
+              <path d="M 250,250 Q 400,{300 - int(40*math.sin(cycle*0.2))} 550,250" stroke="{c_sec}" stroke-width="3" fill="none"/>
+              {nodes}
+            </g>"""
+        elif mode == 4:
+            # Spatial HUD Telemetry Glass
+            center_art = f"""<g transform="translate(400, 260)" filter="url(#glow)">
+              <rect x="-160" y="-80" width="320" height="160" rx="20" fill="#0f172a" fill-opacity="0.75" stroke="{c_acc}" stroke-width="2"/>
+              <circle cx="-90" cy="0" r="40" fill="none" stroke="{c_sec}" stroke-width="4" stroke-dasharray="180,60"/>
+              <text x="30" y="-20" fill="#ffffff" font-family="monospace" font-size="14" font-weight="bold">HUD TELEMETRY</text>
+              <text x="30" y="5" fill="{c_acc}" font-family="monospace" font-size="11">MACH {2.4 + (cycle%10)*0.2:.1f} • ALT {35000 + (cycle*120)%15000}FT</text>
+              <text x="30" y="28" fill="#94a3b8" font-family="monospace" font-size="10">BEARING {(cycle*23)%360}° VECTOR</text>
+            </g>"""
+        else:
+            # Stellar Fusion Core
+            center_art = f"""<g transform="translate(400, 260)" filter="url(#glow)">
+              <circle cx="0" cy="0" r="85" fill="none" stroke="{c_acc}" stroke-width="2" stroke-dasharray="12,6"/>
+              <circle cx="0" cy="0" r="55" fill="url(#sun_glow)"/>
+              <circle cx="0" cy="0" r="25" fill="#ffffff"/>
+              <line x1="-120" y1="0" x2="120" y2="0" stroke="{c_sec}" stroke-width="2"/>
+              <line x1="0" y1="-120" x2="0" y2="120" stroke="{c_sec}" stroke-width="2"/>
+            </g>"""
+
         return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
   <defs>
     <linearGradient id="sky_ambient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -238,30 +331,21 @@ class StudioTelemetryHub:
       <stop offset="100%" stop-color="#312e81"/>
     </linearGradient>
     <linearGradient id="mesh_glow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="0%" stop-color="{c_sec}"/>
       <stop offset="50%" stop-color="{c_acc}"/>
-      <stop offset="100%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="{c_tri}"/>
     </linearGradient>
     <radialGradient id="sun_glow" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#ffffff"/>
       <stop offset="35%" stop-color="{c_acc}"/>
-      <stop offset="75%" stop-color="#6366f1" stop-opacity="0.6"/>
+      <stop offset="75%" stop-color="{c_sec}" stop-opacity="0.6"/>
       <stop offset="100%" stop-color="#020617" stop-opacity="0"/>
     </radialGradient>
     <filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
   <rect width="800" height="600" fill="url(#sky_ambient)"/>
-  <!-- Glowing Sun Aurora Core -->
-  <circle cx="400" cy="160" r="95" fill="url(#sun_glow)" filter="url(#glow)"/>
-  <circle cx="400" cy="160" r="35" fill="#ffffff" opacity="0.95"/>
-  <!-- Mountain Ridges with Snow Caps -->
-  <polygon points="0,420 80,310 160,400 240,290 320,380 400,270 480,390 560,280 640,370 720,295 800,420 800,600 0,600" fill="#0f172a"/>
-  <polygon points="0,490 100,410 200,470 300,390 400,460 500,400 600,480 700,410 800,490 800,600 0,600" fill="#020617" opacity="0.95"/>
-  <!-- Articulated Wings -->
-  <g transform="translate(400, 210) scale(1.3)" filter="url(#glow)">
-    <path d="M 0,0 C -60,-80 -140,-100 -200,-50 C -150,-20 -90,-10 0,20 C 90,-10 150,-20 200,-50 C 140,-100 60,-80 0,0 Z" fill="url(#mesh_glow)"/>
-    <path d="M -120,-35 C -70,-5 -30,10 0,25 C 30,10 70,-5 120,-35" stroke="#ffffff" stroke-width="2.5" fill="none" opacity="0.85"/>
-  </g>
+  <circle cx="{sun_x}" cy="{sun_y}" r="{sun_r}" fill="url(#sun_glow)" filter="url(#glow)"/>
+  {center_art}
 </svg>"""
 
     def _generate_bento_html(self, cycle: int = 1) -> str:
