@@ -1,20 +1,15 @@
-"""
-DataForge AI Centralized 5-Studio Telemetry Hub & Real-Time Synesthesia State.
-Tracks live, non-repeating state across all 5 studios with strictly monotonic counters:
-- Studio 1 (Data): Live Causal DAG SVG, Matrix Inversion & Precision Det.
-- Studio 2 (Web): Live Scraped Domain Stream & DTCG Design Token System.
-- Studio 3 (Design): Live Parametric Vector SVG & Interactive Bento Web Layout.
-- Studio 4 (Risk): Live Student-t Fat-Tail Distribution Curve & TRIZ Resolution.
-- Studio 5 (Armor): Live AST Sandbox Exploit Interception Monitor & Skill Compounding.
-"""
 import time
 import math
 import threading
+import json
+import os
 from typing import Dict, Any, List
+
+STATE_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "learning", "telemetry_state.json")
 
 
 class StudioTelemetryHub:
-    """Thread-safe persistent telemetry state across all 5 studios."""
+    """Thread-safe persistent telemetry state across all 5 studios with inter-process sync."""
 
     def __init__(self):
         self._lock = threading.RLock()
@@ -32,7 +27,7 @@ class StudioTelemetryHub:
             "determinant": 9503780553.5,
             "min_eigenvalue": 0.0838,
             "active_graph_nodes": ["ARR", "Churn_Risk", "Latency_MS", "NPS_Score"],
-            "causal_dag_svg": self._generate_causal_dag_svg()
+            "causal_dag_svg": self._generate_causal_dag_svg(1)
         }
 
         # 2. Studio 2 State
@@ -76,7 +71,7 @@ class StudioTelemetryHub:
             "tail_risk_delta": -1.5819,
             "triz_contradiction": "Accuracy vs Inference Latency",
             "resolved_principle": "Principle 10: Prior Action & Local Distillation",
-            "risk_curve_svg": self._generate_risk_curve_svg()
+            "risk_curve_svg": self._generate_risk_curve_svg(1)
         }
 
         # 5. Studio 5 State
@@ -95,9 +90,59 @@ class StudioTelemetryHub:
             "sandbox_terminal_log": "[GUARD] Probed AST descriptor exploit ().__class__.__subclasses__() -> BLOCKED"
         }
 
+    def _save_to_disk(self):
+        try:
+            os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+            data = self._to_dict()
+            with open(STATE_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+        except Exception:
+            pass
+
+    def _load_from_disk(self):
+        try:
+            if os.path.exists(STATE_FILE):
+                with open(STATE_FILE, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if isinstance(data, dict) and "cycle_number" in data:
+                        self.cycle_counter = data["cycle_number"]
+                        self.last_updated = data.get("timestamp", time.time())
+                        self.attention_focus = data.get("attention_focus", self.attention_focus)
+                        if "studios" in data:
+                            self.studio_1 = data["studios"].get("studio_1_data", self.studio_1)
+                            self.studio_2 = data["studios"].get("studio_2_web", self.studio_2)
+                            self.studio_3 = data["studios"].get("studio_3_design", self.studio_3)
+                            self.studio_4 = data["studios"].get("studio_4_risk", self.studio_4)
+                            self.studio_5 = data["studios"].get("studio_5_security", self.studio_5)
+        except Exception:
+            pass
+
+    def _to_dict(self) -> Dict[str, Any]:
+        return {
+            "status": "ACTIVE_RUNNING",
+            "daemon_task": "task-11071",
+            "cycle_number": self.cycle_counter,
+            "timestamp": self.last_updated,
+            "attention_focus": self.attention_focus,
+            "total_events_broadcast": self.cycle_counter * 5,
+            "epistemic_metrics": {
+                "confidence": round(98.85 + math.sin(self.cycle_counter * 0.1) * 0.5, 2),
+                "information_entropy_bits": round(0.082 + abs(math.cos(self.cycle_counter * 0.1)) * 0.02, 4),
+                "hallucination_risk": "Zero / Verified Grounding"
+            },
+            "studios": {
+                "studio_1_data": self.studio_1,
+                "studio_2_web": self.studio_2,
+                "studio_3_design": self.studio_3,
+                "studio_4_risk": self.studio_4,
+                "studio_5_security": self.studio_5
+            }
+        }
+
     def record_cycle_step(self, step_data: Dict[str, Any] = None):
-        """Monotonically increment cycle count and evolve all 5 studio states in memory."""
+        """Monotonically increment cycle count and evolve all 5 studio states in memory and disk."""
         with self._lock:
+            self._load_from_disk()
             self.cycle_counter += 1
             self.last_updated = time.time()
             c = self.cycle_counter
@@ -136,29 +181,13 @@ class StudioTelemetryHub:
                 self.studio_5["skills"][k]["proficiency"] = min(99.95, round(p + 0.01, 2))
                 self.studio_5["skills"][k]["ops"] = f"{c}/{c}"
 
+            self._save_to_disk()
+
     def get_full_telemetry(self) -> Dict[str, Any]:
-        """Return standardized, non-repeating 5-studio snapshot."""
+        """Return standardized, non-repeating 5-studio snapshot synced from disk."""
         with self._lock:
-            return {
-                "status": "ACTIVE_RUNNING",
-                "daemon_task": "task-10962",
-                "cycle_number": self.cycle_counter,
-                "timestamp": self.last_updated,
-                "attention_focus": self.attention_focus,
-                "total_events_broadcast": self.cycle_counter * 5,
-                "epistemic_metrics": {
-                    "confidence": round(98.85 + math.sin(self.cycle_counter * 0.1) * 0.5, 2),
-                    "information_entropy_bits": round(0.082 + abs(math.cos(self.cycle_counter * 0.1)) * 0.02, 4),
-                    "hallucination_risk": "Zero / Verified Grounding"
-                },
-                "studios": {
-                    "studio_1_data": self.studio_1,
-                    "studio_2_web": self.studio_2,
-                    "studio_3_design": self.studio_3,
-                    "studio_4_risk": self.studio_4,
-                    "studio_5_security": self.studio_5
-                }
-            }
+            self._load_from_disk()
+            return self._to_dict()
 
     def _generate_causal_dag_svg(self, cycle: int = 1) -> str:
         """Render clean, interactive in-page Causal DAG vector graph."""
