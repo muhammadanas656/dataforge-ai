@@ -4,6 +4,7 @@ import threading
 import json
 import os
 from typing import Dict, Any, List
+from pathlib import Path
 
 STATE_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "learning", "telemetry_state.json")
 
@@ -37,10 +38,10 @@ class StudioTelemetryHub:
             "domains_scanned_count": 18,
             "ssrf_blocked_pct": "100%",
             "active_sources": [
-                {"domain": "news.ycombinator.com", "url": "https://news.ycombinator.com", "topic": "Edge AI Benchmarks", "status": "200 OK • SSRF Safe", "extracted_tokens": 28},
-                {"domain": "reddit.com/r/datascience", "url": "https://reddit.com/r/datascience", "topic": "Collinear Matrix Inversion", "status": "200 OK • SSRF Safe", "extracted_tokens": 34},
-                {"domain": "arxiv.org", "url": "https://arxiv.org/abs/2402.1290", "topic": "Fat-Tail Student-t CVaR", "status": "200 OK • SSRF Safe", "extracted_tokens": 42},
-                {"domain": "design-tokens.github.io", "url": "https://design-tokens.github.io/community-group/format/", "topic": "W3C DTCG Token Specs", "status": "200 OK • SSRF Safe", "extracted_tokens": 56}
+                {"domain": "news.ycombinator.com", "url": "https://news.ycombinator.com", "topic": "Edge AI Benchmarks", "status": "200 OK â€¢ SSRF Safe", "extracted_tokens": 28},
+                {"domain": "reddit.com/r/datascience", "url": "https://reddit.com/r/datascience", "topic": "Collinear Matrix Inversion", "status": "200 OK â€¢ SSRF Safe", "extracted_tokens": 34},
+                {"domain": "arxiv.org", "url": "https://arxiv.org/abs/2402.1290", "topic": "Fat-Tail Student-t CVaR", "status": "200 OK â€¢ SSRF Safe", "extracted_tokens": 42},
+                {"domain": "design-tokens.github.io", "url": "https://design-tokens.github.io/community-group/format/", "topic": "W3C DTCG Token Specs", "status": "200 OK â€¢ SSRF Safe", "extracted_tokens": 56}
             ],
             "extracted_tokens": {"primary": "#38bdf8", "secondary": "#6366f1", "accent": "#10b981", "radius": "16px"}
         }
@@ -50,14 +51,22 @@ class StudioTelemetryHub:
             "name": "Studio 3: Vector & Web Design System",
             "status": "SELF_CORRECTING",
             "theme_title": "Hypersonic Aerospace Jet with Stratospheric Aura",
-            "calibrated_score": 95.0,
-            "is_masterpiece": True,
+            "calibrated_score": None,
+            "internal_score": None,
+            "internal_score_provenance": "internal_heuristic",
+            "external_score": None,
+            "external_score_provenance": "external_anchor",
+            "human_preference_rate": None,
+            "human_preference_provenance": "human_measured",
+            "is_masterpiece": None,
             "bezier_count": 14,
             "gradients_count": 6,
             "wcag_contrast_ratio": "13.4:1 (WCAG AAA)",
             "active_svg": self._generate_vector_svg(1),
             "bento_html": self._generate_bento_html(1),
-            "defects": ["MINOR: Add fine-grained contour curvature for true 9.5/10 masterwork depth."]
+            "defects": ["No evaluated design history yet."],
+            "evolution_history": [],
+            "learning_status": "warming_up"
         }
 
         # 4. Studio 4 State
@@ -90,6 +99,11 @@ class StudioTelemetryHub:
             "sandbox_terminal_log": "[GUARD] Probed AST descriptor exploit ().__class__.__subclasses__() -> BLOCKED"
         }
         self.is_daemon_running: bool = False
+        self.paused_studios: set = set()  # studio IDs currently paused by the user
+        self.internet_evidence: Dict[str, Any] = {"validated_sources": 0, "feature_vector": {}, "feature_basis": []}
+        self.internet_directives: Dict[str, str] = {}
+        self.guardian_verdict: Dict[str, Any] = {"verdict": "YELLOW", "reasons": ["not_yet_run"], "provenance": "deterministic_guardian"}
+        self.learning_action: Dict[str, Any] = {"status": "not_yet_run", "provenance": "deterministic_active_learning"}
         self._daemon_thread: threading.Thread = None
 
     def start_daemon(self):
@@ -107,15 +121,33 @@ class StudioTelemetryHub:
             self.is_daemon_running = False
             self._save_to_disk()
 
+    def toggle_studio(self, studio_id: str):
+        """Toggle a specific studio between paused and active. Returns updated paused set."""
+        with self._lock:
+            if studio_id in self.paused_studios:
+                self.paused_studios.discard(studio_id)
+            else:
+                self.paused_studios.add(studio_id)
+            self._save_to_disk()
+        return list(self.paused_studios)
+
     def _run_daemon_worker(self):
         """Background worker thread continuously executing supervised cycles."""
         from src.continuous_autonomous_supervisor import run_continuous_supervised_cycle
         while self.is_daemon_running:
             try:
+                run_continuous_supervised_cycle(
+                    max_cycles=1,
+                    delay_between_cycles_sec=0.0,
+                    paused_studios=list(self.paused_studios),
+                )
+            except TypeError:
+                # Supervisor doesn't accept paused_studios yet — call without it
                 run_continuous_supervised_cycle(max_cycles=1, delay_between_cycles_sec=0.0)
             except Exception as e:
                 print(f"[Daemon worker error]: {e}")
             time.sleep(0.8)
+
 
     def _save_to_disk(self):
         try:
@@ -135,8 +167,13 @@ class StudioTelemetryHub:
                         self.cycle_counter = data["cycle_number"]
                         self.last_updated = data.get("timestamp", time.time())
                         self.attention_focus = data.get("attention_focus", self.attention_focus)
-                        if "is_running" in data:
-                            self.is_daemon_running = data["is_running"]
+                        # Do not restore is_running here. The in-memory flag is
+                        # controlled by start_daemon/stop_daemon; restoring it
+                        # from disk would resurrect a stale worker state after
+                        # restart. Keep the current in-memory value intact.
+                        self.guardian_verdict = data.get("guardian", self.guardian_verdict)
+                        self.learning_action = data.get("learning_action", self.learning_action)
+                        self.internet_evidence = data.get("internet_evidence", self.internet_evidence)
                         if "studios" in data:
                             self.studio_1 = data["studios"].get("studio_1_data", self.studio_1)
                             self.studio_2 = data["studios"].get("studio_2_web", self.studio_2)
@@ -150,6 +187,7 @@ class StudioTelemetryHub:
         return {
             "status": "ACTIVE_RUNNING" if self.is_daemon_running else "PAUSED",
             "is_running": self.is_daemon_running,
+            "paused_studios": list(self.paused_studios),
             "daemon_task": "in-process-supervisor",
             "cycle_number": self.cycle_counter,
             "timestamp": self.last_updated,
@@ -160,6 +198,10 @@ class StudioTelemetryHub:
                 "information_entropy_bits": round(0.082 + abs(math.cos(self.cycle_counter * 0.1)) * 0.02, 4),
                 "hallucination_risk": "Zero / Verified Grounding"
             },
+            "internet_evidence": self.internet_evidence,
+            "internet_directives": self.internet_directives,
+            "guardian": self.guardian_verdict,
+            "learning_action": self.learning_action,
             "studios": {
                 "studio_1_data": self.studio_1,
                 "studio_2_web": self.studio_2,
@@ -169,12 +211,97 @@ class StudioTelemetryHub:
             }
         }
 
+    def _persist_cycle_audit(self, step_data: Dict[str, Any] = None, cycle: int = 0, accepted: bool = True):
+        """Persist qualitative cycle evidence for later external review with bounded retention."""
+        if os.getenv("DATAFORGE_PERSIST_DAEMON", "1") != "1":
+            return
+        learning = (step_data or {}).get("learning_action") or self.learning_action or {}
+        evidence = (step_data or {}).get("internet_evidence") or self.internet_evidence or {}
+        design = (step_data or {}).get("design") or self.studio_3 or {}
+        record = {
+            "schema_version": 2, "record_type": "cycle_audit", "recorded_at": time.time(), "cycle": cycle, "attempted_cycle": learning.get("cycle", cycle), "accepted": accepted,
+            "guardian": (step_data or {}).get("guardian") or self.guardian_verdict,
+            "learning_action": learning, "internet_evidence": evidence,
+            "visual": {"active_svg": design.get("svg_code", design.get("active_svg", "")),
+                       "bento_html": design.get("bento_html", ""),
+                       "audit": design.get("audit", design.get("quality_audit", {}))},
+            "data_studio": self.studio_1, "risk_studio": self.studio_4,
+            "security_studio": self.studio_5,
+        }
+        root = Path(__file__).resolve().parents[1] / "data" / "learning"
+        root.mkdir(parents=True, exist_ok=True)
+        path = root / "autonomy_cycle_io.jsonl"
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+        lines = []
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                parsed = json.loads(line)
+                if parsed.get("record_type") == "cycle_audit" and parsed.get("schema_version") == 2:
+                    lines.append(line)
+            except (TypeError, ValueError):
+                continue
+        if len(lines) > 50:
+            lines = lines[-50:]
+        path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+        if cycle and cycle % 100 == 0:
+            checkpoint = root / "autonomy_20000_checkpoints.jsonl"
+            with checkpoint.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+            lines = []
+            for line in checkpoint.read_text(encoding="utf-8").splitlines():
+                try:
+                    parsed = json.loads(line)
+                    if parsed.get("record_type") == "cycle_audit" and parsed.get("schema_version") == 2:
+                        lines.append(line)
+                except (TypeError, ValueError):
+                    continue
+            if len(lines) > 50:
+                lines = lines[-50:]
+            checkpoint.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
     def record_cycle_step(self, step_data: Dict[str, Any] = None):
         """Monotonically increment cycle count and evolve all 5 studio states in memory and disk."""
         with self._lock:
             self._load_from_disk()
+            evidence = (step_data or {}).get("internet_evidence") or self.internet_evidence
+            self.guardian_verdict = (step_data or {}).get("guardian") or self.guardian_verdict
+            self.learning_action = (step_data or {}).get("learning_action") or self.learning_action
+            evidence_novelty = int(evidence.get("evidence_novelty", 0))
+            learning_action = (step_data or {}).get("learning_action") or self.learning_action
+            local_learning_completed = bool(learning_action.get("advances_cycle"))
+            design_preview = (step_data or {}).get("design") or {}
+            autonomous = (design_preview.get("audit") or {}).get("autonomous_evaluation") or {}
+            previous_score = self.studio_3.get("autonomous_proxy_score")
+            current_score = autonomous.get("score")
+            deep_visual_improvement = bool(autonomous.get("passed") and current_score is not None and (previous_score is None or float(current_score) > float(previous_score)))
+            if not evidence_novelty and not evidence.get("new_sources_validated", 0) and not local_learning_completed and not deep_visual_improvement:
+                self.internet_evidence = evidence
+                self.studio_3["evidence_novelty"] = 0
+                self.studio_3["learning_status"] = "no_new_information"
+                self.studio_3["last_rejection_reason"] = "no_verified_improvement_or_novel_evidence"
+                self._persist_cycle_audit(step_data, self.cycle_counter, accepted=False)
+                self._save_to_disk()
+                return False
             self.cycle_counter += 1
             self.last_updated = time.time()
+            self.internet_evidence = evidence
+            if current_score is not None:
+                self.studio_3["autonomous_proxy_score"] = current_score
+            self.internet_directives = (step_data or {}).get("internet_directives") or evidence.get("directives", {})
+            evidence_summary = {
+                "validated_sources": evidence.get("validated_sources", 0),
+                "feature_vector": evidence.get("feature_vector", {}),
+                "feature_basis": evidence.get("feature_basis", [])[:5],
+                "updated_at": evidence.get("updated_at"),
+            }
+            for studio in (self.studio_1, self.studio_2, self.studio_3, self.studio_4, self.studio_5):
+                studio["internet_evidence"] = evidence_summary
+            for studio_name, studio in (
+                ("Studio 1 (Data)", self.studio_1), ("Studio 2 (Web)", self.studio_2),
+                ("Studio 3 (Design)", self.studio_3), ("Studio 4 (Risk)", self.studio_4),
+                ("Studio 5 (Security)", self.studio_5),
+            ):
+                studio["internet_directive"] = self.internet_directives.get(studio_name, "Awaiting validated web evidence.")
             c = self.cycle_counter
 
             # Evolve Studio 1
@@ -186,6 +313,12 @@ class StudioTelemetryHub:
             self.studio_2["domains_scanned_count"] = 18 + (c % 50)
             self.studio_2["extracted_tokens"]["primary"] = self._hsl_to_hex((c * 37.0) % 360.0, 90.0, 60.0)
             self.studio_2["extracted_tokens"]["secondary"] = self._hsl_to_hex((c * 37.0 + 120.0) % 360.0, 85.0, 55.0)
+
+            # Keep the last accepted artifact available so a weak candidate
+            # cannot overwrite it merely because the loop produced markup.
+            previous_active_svg = self.studio_3["active_svg"]
+            previous_bento_html = self.studio_3["bento_html"]
+            previous_calibrated_score = self.studio_3["calibrated_score"]
 
             # Evolve Studio 3
             self.studio_3["active_svg"] = self._generate_vector_svg(c)
@@ -202,6 +335,97 @@ class StudioTelemetryHub:
             self.studio_3["theme_title"] = f"{base_title} (Variant #{c})"
             self.attention_focus = f"Evolving: {self.studio_3['theme_title']}"
 
+            # Keep telemetry tied to the artifact actually produced and audited
+            # by the supervised cycle. Previously this data was discarded and
+            # the UI always displayed the initial hard-coded 95% score.
+            design_result = (step_data or {}).get("design") or {}
+            if design_result:
+                self.studio_3["active_svg"] = design_result.get("svg_code", self.studio_3["active_svg"])
+                self.studio_3["bento_html"] = design_result.get("bento_html", self.studio_3["bento_html"])
+                audit = design_result.get("audit") or {}
+                score = round(float((audit.get("autonomous_proxy_score") if isinstance(audit, dict) and audit.get("autonomous_proxy_score") is not None else design_result.get("final_fitness_score", 0.0))), 1)
+                self.studio_3["internal_score"] = score
+                self.studio_3["calibrated_score"] = score
+                self.studio_3["internal_score_provenance"] = (audit.get("autonomous_proxy_provenance") if isinstance(audit, dict) and audit.get("autonomous_proxy_provenance") else "internal_heuristic")
+                audit = design_result.get("audit") or {}
+                proxy_score = (audit.get("autonomous_proxy_score") if isinstance(audit, dict) else None)
+                proxy_provenance = (audit.get("autonomous_proxy_provenance") if isinstance(audit, dict) else None)
+                if proxy_provenance == "autonomous_deterministic_ensemble":
+                    self.studio_3["autonomous_deep_proxy_score"] = proxy_score
+                    self.studio_3["autonomous_deep_proxy_provenance"] = proxy_provenance
+                    self.studio_3["autonomous_deep_audit_cycle"] = c
+                self.studio_3["autonomous_fast_proxy_score"] = proxy_score if proxy_provenance == "autonomous_fast_structural_proxy" else self.studio_3.get("autonomous_fast_proxy_score")
+                self.studio_3["autonomous_proxy_score"] = self.studio_3.get("autonomous_deep_proxy_score") or proxy_score
+                self.studio_3["autonomous_proxy_provenance"] = self.studio_3.get("autonomous_deep_proxy_provenance") or proxy_provenance
+                self.studio_3["external_score"] = None
+                self.studio_3["human_preference_rate"] = None
+                audit = design_result.get("audit") or {}
+                recent = self.studio_3.setdefault("recent_novelty_keys", [])
+                # Keys written by the former 4-grammar carousel are not
+                # comparable with the new 36-candidate grammar space.
+                if self.studio_3.get("novelty_schema_version") != 2:
+                    recent.clear()
+                    self.studio_3["novelty_schema_version"] = 2
+                novelty_key = audit.get("novelty_key")
+                is_repeat = novelty_key is not None and novelty_key in recent[-12:]
+                if novelty_key is not None:
+                    recent.append(novelty_key)
+                    del recent[:-12]
+                visual_delta = (audit.get("visual_baseline") or {}).get("delta_vs_baseline")
+                visual_regression = visual_delta is not None and float(visual_delta) < -2.0
+                candidate_score = float(design_result.get("final_fitness_score", 0.0))
+                quality_regression = candidate_score < float(previous_calibrated_score) - 0.1
+                candidate_rejected = is_repeat or visual_regression or quality_regression
+                if candidate_rejected:
+                    self.studio_3["active_svg"] = previous_active_svg
+                    self.studio_3["bento_html"] = previous_bento_html
+                    self.studio_3["calibrated_score"] = previous_calibrated_score
+                    audit["candidate_status"] = "rejected"
+                    rejection_reason = (
+                        "repeated composition" if is_repeat else
+                        "visual regression versus accepted baseline" if visual_regression else
+                        "measured quality did not exceed the accepted artifact"
+                    )
+                    audit["next_actions"] = list(dict.fromkeys(audit.get("next_actions", []) + [f"Candidate rejected: {rejection_reason}; explore a different composition grammar."]))
+                else:
+                    audit["candidate_status"] = "accepted"
+                audit["novelty_score"] = 20.0 if is_repeat else 100.0
+                audit["repetition_detected"] = is_repeat
+                if is_repeat:
+                    audit["next_actions"] = list(dict.fromkeys(audit.get("next_actions", []) + ["Repeated composition detected; generate a new visual grammar."]))
+                    self.studio_3["calibrated_score"] = min(self.studio_3["calibrated_score"], 20.0)
+                self.studio_3["quality_audit"] = audit
+                self.studio_3["visual_baseline"] = audit.get("visual_baseline", {})
+                history = self.studio_3.setdefault("evolution_history", [])
+                previous_score = history[-1].get("score") if history else None
+                history.append({
+                    "cycle": c,
+                    "score": self.studio_3["calibrated_score"],
+                    "strict_svg_score": audit.get("fitness_audit", {}).get("overall"),
+                    "novelty_score": audit.get("novelty_score"),
+                    "composition_mode": audit.get("composition_mode"),
+                    "composition_variant": audit.get("composition_variant"),
+                    "composition_id": audit.get("composition_id"),
+                    "candidate_status": audit.get("candidate_status"),
+                    "repetition_detected": is_repeat,
+                    "next_actions": audit.get("next_actions", [])
+                })
+                del history[:-50]
+                self.studio_3["last_improvement_delta"] = round(
+                    self.studio_3["calibrated_score"] - previous_score, 1
+                ) if previous_score is not None else 0.0
+                self.studio_3["best_measured_score"] = max(
+                    [float(item.get("score", 0)) for item in history] or [self.studio_3["calibrated_score"]]
+                )
+                self.studio_3["learning_status"] = (
+                    "blocked_by_repetition" if is_repeat else
+                    "searching_for_improvement" if candidate_rejected else
+                    "needs_refinement" if audit.get("next_actions") else "validated_candidate"
+                )
+                self.studio_3["bezier_count"] = audit.get("bezier_curves_count", self.studio_3["bezier_count"])
+                self.studio_3["gradients_count"] = audit.get("gradients_count", self.studio_3["gradients_count"])
+                self.studio_3["defects"] = audit.get("defects", self.studio_3["defects"])
+
             # Evolve Studio 4
             self.studio_4["var_95"] = round(-2.2899 - (c % 5)*0.04, 4)
             self.studio_4["cvar_95"] = round(-3.8718 - (c % 5)*0.06, 4)
@@ -213,6 +437,7 @@ class StudioTelemetryHub:
                 self.studio_5["skills"][k]["proficiency"] = min(99.95, round(p + 0.01, 2))
                 self.studio_5["skills"][k]["ops"] = f"{c}/{c}"
 
+            self._persist_cycle_audit(step_data, c, accepted=True)
             self._save_to_disk()
 
     def get_full_telemetry(self) -> Dict[str, Any]:
@@ -281,7 +506,7 @@ class StudioTelemetryHub:
         """Render ultra-high quality, multi-layered Masterpiece vector artwork."""
         from src.universal_geometry_primitives import geometry_primitives
 
-        # 1. Continuous HSL Color Orbit using prime angular step 37.0°
+        # 1. Continuous HSL Color Orbit using prime angular step 37.0Â°
         h_prime = (cycle * 37.0) % 360.0
         c_acc = self._hsl_to_hex(h_prime, 90.0, 60.0)
         c_sec = self._hsl_to_hex((h_prime + 120.0) % 360.0, 85.0, 55.0)
@@ -364,8 +589,8 @@ class StudioTelemetryHub:
     <text x="-130" y="8" fill="#ffffff" font-family="monospace" font-size="16" font-weight="bold" text-anchor="middle">MACH {3.2 + (cycle%10)*0.1:.1f}</text>
     <text x="30" y="-40" fill="#ffffff" font-family="sans-serif" font-size="18" font-weight="800">SPATIAL HUD VECTOR</text>
     <text x="30" y="-10" fill="{c_acc}" font-family="monospace" font-size="12">ALTITUDE: {42000 + (cycle*150)%12000} FT</text>
-    <text x="30" y="15" fill="#94a3b8" font-family="monospace" font-size="11">BEARING: {(cycle*27)%360}° STRATOSPHERE</text>
-    <text x="30" y="42" fill="#10b981" font-family="monospace" font-size="11">● SUB-PIXEL INVARIANTS: VERIFIED</text>
+    <text x="30" y="15" fill="#94a3b8" font-family="monospace" font-size="11">BEARING: {(cycle*27)%360}Â° STRATOSPHERE</text>
+    <text x="30" y="42" fill="#10b981" font-family="monospace" font-size="11">â— SUB-PIXEL INVARIANTS: VERIFIED</text>
   </g>"""
         else:
             # 6. Deep Space Magnetic Tokamak Fusion Reactor
@@ -406,17 +631,17 @@ class StudioTelemetryHub:
     <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
       <div class="text-[10px] text-slate-400 font-bold uppercase">Annual ARR</div>
       <div class="text-base font-black text-white mt-0.5">$4.82M</div>
-      <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">↑ +18.4% YoY</div>
+      <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">â†‘ +18.4% YoY</div>
     </div>
     <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
       <div class="text-[10px] text-slate-400 font-bold uppercase">P99 Latency</div>
       <div class="text-base font-black text-cyan-300 mt-0.5">1.24 ms</div>
-      <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">⚡ 0.02ms warm cache</div>
+      <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">âš¡ 0.02ms warm cache</div>
     </div>
     <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
       <div class="text-[10px] text-slate-400 font-bold uppercase">Churn Risk</div>
       <div class="text-base font-black text-indigo-300 mt-0.5">0.82%</div>
-      <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">✓ Causal Verified</div>
+      <div class="text-[10px] text-emerald-400 font-semibold mt-0.5">âœ“ Causal Verified</div>
     </div>
   </div>
   <div class="flex items-center justify-between pt-1">
@@ -436,17 +661,17 @@ class StudioTelemetryHub:
             return f"""<div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-white space-y-3 font-sans">
   <div class="flex items-center justify-between border-b border-slate-800 pb-2">
     <div class="flex items-center gap-2 text-xs font-bold text-purple-300">
-      <span>🤖 AI Copilot & LLM Playground</span>
+      <span>ðŸ¤– AI Copilot & LLM Playground</span>
     </div>
     <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">Model: qwen/qwen3.6-27b</span>
   </div>
   <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 leading-relaxed font-mono">
     <span class="text-emerald-400">user:</span> Optimize collinear covariance matrix inversion.<br/>
-    <span class="text-indigo-400">assistant:</span> Applying C-contiguous SIMD BLAS solver with Ridge regularizer <strong class="text-cyan-300">λ = 1e-4</strong> (Speedup: 4.8x).
+    <span class="text-indigo-400">assistant:</span> Applying C-contiguous SIMD BLAS solver with Ridge regularizer <strong class="text-cyan-300">Î» = 1e-4</strong> (Speedup: 4.8x).
   </div>
   <div class="flex items-center justify-between text-xs text-slate-400">
     <span>Token Consumption: <strong class="text-emerald-400">0 Tokens (Local Heuristics)</strong></span>
-    <span class="text-[11px] font-mono text-indigo-400">Temp: 0.2 • Top-P: 0.95</span>
+    <span class="text-[11px] font-mono text-indigo-400">Temp: 0.2 â€¢ Top-P: 0.95</span>
   </div>
 </div>"""
 
@@ -455,7 +680,7 @@ class StudioTelemetryHub:
             return f"""<div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-white space-y-3 font-sans">
   <div class="flex items-center justify-between border-b border-slate-800 pb-2">
     <div class="flex items-center gap-2 text-xs font-bold text-cyan-300">
-      <span>📈 High-Frequency Quant Terminal</span>
+      <span>ðŸ“ˆ High-Frequency Quant Terminal</span>
     </div>
     <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">BTC/USD +4.82%</span>
   </div>
@@ -482,14 +707,14 @@ class StudioTelemetryHub:
             return f"""<div class="p-4 rounded-2xl bg-slate-950 border border-purple-500/30 text-white space-y-3 font-sans shadow-lg shadow-purple-500/10">
   <div class="flex items-center justify-between border-b border-slate-800 pb-2">
     <div class="flex items-center gap-2 text-xs font-bold text-purple-300">
-      <span>🥽 VisionOS 2.5D Spatial Glass Dashboard</span>
+      <span>ðŸ¥½ VisionOS 2.5D Spatial Glass Dashboard</span>
     </div>
     <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">Frosted Blur 24px</span>
   </div>
   <div class="p-3.5 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10 flex items-center justify-between">
     <div>
       <div class="text-xs font-bold text-white">Spatial Anchor Position</div>
-      <div class="text-[10px] text-slate-400 mt-0.5 font-mono">X: 0.42m • Y: 1.18m • Z: -0.85m</div>
+      <div class="text-[10px] text-slate-400 mt-0.5 font-mono">X: 0.42m â€¢ Y: 1.18m â€¢ Z: -0.85m</div>
     </div>
     <span class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-purple-500/30 font-bold text-xs">3D</span>
   </div>
@@ -504,14 +729,14 @@ class StudioTelemetryHub:
             return f"""<div class="p-4 rounded-2xl bg-slate-950 border border-emerald-500/30 text-white space-y-3 font-sans">
   <div class="flex items-center justify-between border-b border-slate-800 pb-2">
     <div class="flex items-center gap-2 text-xs font-bold text-emerald-400">
-      <span>🛡️ Zero-Trust Threat Command Center</span>
+      <span>ðŸ›¡ï¸ Zero-Trust Threat Command Center</span>
     </div>
     <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">STATUS: 100% SECURE</span>
   </div>
   <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 font-mono text-[11px] space-y-1 text-emerald-300">
     <div class="text-slate-400">[THREAT LOG] 10 Zero-Day AST Exploit Probes Tested:</div>
-    <div>● Descriptor Probe: <span class="text-red-400 font-bold">BLOCKED (0 Escapes)</span></div>
-    <div>● SSRF IP Validator: <span class="text-emerald-400 font-bold">100% CONTAINED</span></div>
+    <div>â— Descriptor Probe: <span class="text-red-400 font-bold">BLOCKED (0 Escapes)</span></div>
+    <div>â— SSRF IP Validator: <span class="text-emerald-400 font-bold">100% CONTAINED</span></div>
   </div>
   <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
     <span>Active Cert: <strong class="text-white font-mono">TLS 1.3 / Ed25519</strong></span>
@@ -524,12 +749,12 @@ class StudioTelemetryHub:
             return f"""<div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-white space-y-3 font-sans">
   <div class="flex items-center justify-between border-b border-slate-800 pb-2">
     <div class="flex items-center gap-2 text-xs font-bold text-cyan-300">
-      <span>⚡ Developer API Gateway & Tokens</span>
+      <span>âš¡ Developer API Gateway & Tokens</span>
     </div>
     <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">W3C DTCG Format</span>
   </div>
   <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs font-mono">
-    <span class="text-slate-400">Bearer sk-live_df_{c_acc[1:]}••••••••</span>
+    <span class="text-slate-400">Bearer sk-live_df_{c_acc[1:]}â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢</span>
     <span class="text-emerald-400 font-bold text-[10px] px-2 py-0.5 rounded bg-emerald-500/10">Active Key</span>
   </div>
   <div class="flex items-center justify-between text-xs text-slate-400">

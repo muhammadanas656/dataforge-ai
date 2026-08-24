@@ -1558,6 +1558,18 @@ def api_evolution_step():
     return studio_telemetry_hub.get_full_telemetry()
 
 
+@app.post("/api/evolution/studio/{studio_id}/toggle")
+def api_evolution_studio_toggle(studio_id: str):
+    """Toggle a specific studio between active and paused.
+    Valid studio_id values: studio_1, studio_2, studio_3, studio_4, studio_5
+    """
+    VALID = {"studio_1", "studio_2", "studio_3", "studio_4", "studio_5"}
+    if studio_id not in VALID:
+        raise HTTPException(status_code=400, detail=f"Invalid studio_id '{studio_id}'. Must be one of {sorted(VALID)}")
+    studio_telemetry_hub.toggle_studio(studio_id)
+    return studio_telemetry_hub.get_full_telemetry()
+
+
 @app.post("/api/design/multi-proportion")
 def api_design_multi_proportion(payload: dict = Body(...)):
     """Synthesize multi-proportion visual previews and client-side PNG converter."""
@@ -1591,6 +1603,7 @@ def api_learning_telemetry():
     from src.multi_perspective_evaluator import multi_perspective_evaluator
     skill = autonomous_skill_learner.get_skill_status("web_harvesting")
     rep = multi_perspective_evaluator.evaluate_all_perspectives()
+    from src.design_learning_controller import design_learning_controller
     passed = all(p.passed for p in rep.values())
     composite = round(sum(p.score for p in rep.values()) / max(len(rep), 1) * 100, 2)
     
@@ -1611,7 +1624,8 @@ def api_learning_telemetry():
         "successful_operations": succ,
         "perspective_scores": {k: v._asdict() for k, v in rep.items()},
         "composite_fitness": composite,
-        "passed": passed
+        "passed": passed,
+        "design_learning": design_learning_controller.status()
     }
 
 
@@ -1629,4 +1643,34 @@ def api_learning_evolve():
     }
 
 
+# Honest human visual preference anchors. No synthetic ratings are accepted.
+@app.get("/api/design/preferences")
+def api_design_preferences():
+    import json as _json
+    from pathlib import Path
+    path = Path(__file__).resolve().parents[1] / "data" / "learning" / "human_preferences.json"
+    if not path.exists():
+        return {"count": 0, "preference_rate": None, "provenance": "human_measured", "status": "awaiting_real_human_ratings"}
+    rows = _json.loads(path.read_text(encoding="utf-8"))
+    decisive = [r for r in rows if r.get("choice") in {"a", "b"}]
+    wins_a = sum(r.get("choice") == "a" for r in decisive)
+    return {"count": len(rows), "preference_rate": round(wins_a / len(decisive), 4) if decisive else None, "provenance": "human_measured", "status": "measured" if decisive else "awaiting_real_human_ratings"}
 
+@app.post("/api/design/preferences")
+def api_record_design_preference(payload: dict = Body(...)):
+    import json as _json
+    from pathlib import Path
+    choice = payload.get("choice")
+    if choice not in {"a", "b", "tie"} or not payload.get("design_a") or not payload.get("design_b"):
+        raise HTTPException(status_code=400, detail="design_a, design_b, and choice=a|b|tie are required")
+    path = Path(__file__).resolve().parents[1] / "data" / "learning" / "human_preferences.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    rows = _json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    rows.append({"design_a": payload["design_a"], "design_b": payload["design_b"], "choice": choice, "timestamp": datetime.utcnow().isoformat() + "Z"})
+    path.write_text(_json.dumps(rows, indent=2), encoding="utf-8")
+    return api_design_preferences()
+@app.get("/api/autonomy/graduation")
+def api_autonomy_graduation():
+    from src.studio_telemetry_hub import studio_telemetry_hub
+    from src.trust_graduation import graduation_gate
+    return graduation_gate.evaluate(studio_telemetry_hub.get_full_telemetry())

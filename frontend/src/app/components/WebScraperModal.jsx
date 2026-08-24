@@ -3,29 +3,37 @@ import { useState } from "react";
 import { Card, Button, Badge } from "./ui";
 import { useJob } from "../hooks/useJob";
 import { useDataset } from "./DatasetContext";
+import { authFetch } from "../api";
 import { Globe, ShieldAlert, ShieldCheck, AlertTriangle, Loader2, Sparkles, Database, CheckCircle2 } from "lucide-react";
 
 export default function WebScraperModal({ onClose }) {
   const [url, setUrl] = useState("");
   const [proxy, setProxy] = useState("");
   const [maxPages, setMaxPages] = useState(5);
+  const [isStarting, setIsStarting] = useState(false);
+  const [startError, setStartError] = useState(null);
   const { refresh, setDatasetId } = useDataset();
   const job = useJob("scrape", { url: "" }, { autoStart: false });
 
   const handleStart = async () => {
-    if (!url.trim()) return;
+    if (!url.trim() || isStarting) return;
+    setIsStarting(true);
+    setStartError(null);
     try {
-      const res = await fetch("http://localhost:8000/api/scrape/start", {
+      const res = await authFetch("/api/scrape/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: url.trim(), max_pages: Number(maxPages), proxy: proxy || undefined })
       });
-      if (res.ok) {
-        const data = await res.json();
-        // job starts in background
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setStartError(err.detail || `Server error ${res.status}`);
       }
     } catch (e) {
+      setStartError("Could not reach backend. Is it running?");
       console.error("Scrape start failed:", e);
+    } finally {
+      setIsStarting(false);
     }
   };
 
@@ -89,6 +97,14 @@ export default function WebScraperModal({ onClose }) {
             <Button variant="ghost" size="sm" onClick={onClose}>Close</Button>
           )}
         </div>
+
+        {/* Error banner */}
+        {startError && (
+          <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 flex items-center gap-2 text-[11px] text-rose-700 dark:text-rose-300">
+            <AlertTriangle size={13} className="flex-shrink-0" />
+            <span>{startError}</span>
+          </div>
+        )}
 
         {/* Live Progress Logs */}
         {job.status === "running" && (
